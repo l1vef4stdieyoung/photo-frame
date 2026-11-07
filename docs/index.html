@@ -1309,11 +1309,27 @@ dialog.setdlg.ghost{opacity:.12}
         <label class="ck" for="anim"><input id="anim" type="checkbox"> Enable animations (backgrounds and interface transitions)</label>
       </div>
       <div class="sd-card">
-        <h3>Night dimming</h3>
-        <label for="dimmode">Dim the screen</label><select id="dimmode"><option value="off">Never</option><option value="sun">After sunset, until sunrise</option><option value="schedule">On a schedule</option></select>
-        <div id="dimsched" class="two"><div><label for="dimfrom">From</label><input id="dimfrom" type="time"></div><div><label for="dimto">Until</label><input id="dimto" type="time"></div></div>
-        <label for="dimlvl">Strength: <span id="dimlvlv"></span></label><input id="dimlvl" type="range" min="10" max="85" step="5">
-        <small>The screen fades gradually over 45 minutes. Tap the screen to brighten it for a minute.</small>
+        <h3>Screen brightness</h3>
+        <label for="dimmode">Brightness</label><select id="dimmode">
+          <option value="off">The tablet's own brightness</option>
+          <option value="sun">Dim at night (after sunset, until sunrise)</option>
+          <option value="schedule">Dim at night (on a schedule)</option>
+          <option value="sensor">Automatic: ambient light sensor</option>
+          <option value="camera">Automatic: front camera</option>
+        </select>
+        <div id="dimnight">
+          <div id="dimsched" class="two"><div><label for="dimfrom">From</label><input id="dimfrom" type="time"></div><div><label for="dimto">Until</label><input id="dimto" type="time"></div></div>
+          <label for="dimlvl">Strength: <span id="dimlvlv"></span></label><input id="dimlvl" type="range" min="10" max="85" step="5">
+          <small>The screen fades gradually over 45 minutes. Drag the slider to preview it.</small>
+        </div>
+        <div id="dimauto" hidden>
+          <label for="automin">Darkest brightness: <span id="autominv"></span></label><input id="automin" type="range" min="2" max="60" step="1">
+          <label for="autoadj">Overall: <span id="autoadjv"></span></label><input id="autoadj" type="range" min="-30" max="30" step="5">
+          <p class="sd-cur" id="autoread"></p>
+          <div class="wxrow" id="camtestrow"><button type="button" id="camtest">Measure now</button></div>
+          <small id="autonote"></small>
+        </div>
+        <small>Tap the screen to brighten it fully for a minute.</small>
       </div>
       <div class="sd-card">
         <h3>Navigation</h3>
@@ -1452,7 +1468,7 @@ dialog.setdlg.ghost{opacity:.12}
       </div>
       <div class="sd-card">
         <h3>About</h3>
-        <small>Photo frame v40. Weather data provided by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a>. Lyrics provided by <a href="https://lrclib.net/" target="_blank" rel="noopener">LRCLIB</a>. Radar by RainViewer, map © OpenStreetMap contributors, tempo data from Deezer, picture of the day from Wikimedia Commons.</small>
+        <small>Photo frame v41. Weather data provided by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a>. Lyrics provided by <a href="https://lrclib.net/" target="_blank" rel="noopener">LRCLIB</a>. Radar by RainViewer, map © OpenStreetMap contributors, tempo data from Deezer, picture of the day from Wikimedia Commons.</small>
       </div>
     </section>
 
@@ -1464,7 +1480,7 @@ dialog.setdlg.ghost{opacity:.12}
 /* ===== v40: Android app bridge =====
    Inside the photo-frame Android app, Capacitor provides window.Capacitor and the native "Frame" plugin.
    In a normal browser none of this exists and everything falls back to plain web behaviour. */
-window.WEB_VERSION = '40.0';
+window.WEB_VERSION = '41.0';
 window.isApp = () => !!((window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) || /PhotoFrameApp/.test(navigator.userAgent));
 window.nat = (method, options) => {
   const C = window.Capacitor;
@@ -1499,6 +1515,21 @@ const HU = Object.assign(Object.create(null), {
   "Where are you?": "Hol vagy?",
   "Used for weather, sunrise, sunset and the moon. Currently:": "Az időjáráshoz, a napkeltéhez, a napnyugtához és a Holdhoz használjuk. Jelenleg:",
   "Search for a city": "Város keresése",
+  /* v41 */
+  "Screen brightness": "Képernyő-fényerő", "Brightness": "Fényerő", "The tablet's own brightness": "A táblagép saját fényereje",
+  "Dim at night (after sunset, until sunrise)": "Sötétítés éjszaka (napnyugtától napkeltéig)", "Dim at night (on a schedule)": "Sötétítés éjszaka (időzítve)",
+  "Automatic: ambient light sensor": "Automatikus: fényérzékelő", "Automatic: front camera": "Automatikus: előlapi kamera",
+  "The screen fades gradually over 45 minutes. Drag the slider to preview it.": "A képernyő 45 perc alatt fokozatosan sötétedik el. Húzd a csúszkát az előnézethez.",
+  "Darkest brightness:": "Legkisebb fényerő:", "Overall:": "Összességében:", "normal": "normál", "Measure now": "Mérés most", "Measuring…": "Mérés…",
+  "Tap the screen to brighten it fully for a minute.": "Koppints a képernyőre, hogy egy percre teljes fényerőre váltson.",
+  "Waiting for a reading…": "Várakozás mérésre…", "Waiting for the light sensor…": "Várakozás a fényérzékelőre…",
+  "About once a minute the front camera takes one tiny, blurry reading of the room light. Nothing is saved or sent anywhere. Android shows a small camera dot while it measures.": "Az előlapi kamera nagyjából percenként egyszer egy apró, elmosódott mérést végez a szoba fényéről. Semmit nem ment és nem küld el. Mérés közben az Android egy kis kamera jelzést mutat.",
+  "Uses the tablet’s ambient light sensor, like phone auto-brightness.": "A táblagép fényérzékelőjét használja, mint a telefonok automatikus fényereje.",
+  "The light sensor only works in the Android app. In a browser, use the camera mode.": "A fényérzékelő csak az Android-alkalmazásban működik. Böngészőben használd a kamera módot.",
+  "The light sensor can only be used in the Android app.": "A fényérzékelő csak az Android-alkalmazásban használható.",
+  "No light sensor was found on this tablet. Try the camera mode.": "Ezen a táblagépen nincs fényérzékelő. Próbáld a kamera módot.",
+  "Update the app (version 1.1.0 or newer) to use the light sensor.": "A fényérzékelőhöz frissítsd az alkalmazást (1.1.0 vagy újabb).",
+  "Camera access was not allowed. Allow it to use camera mode.": "A kamera használata nincs engedélyezve. Engedélyezd a kamera módhoz.",
   /* v40 */
   "Android app": "Android-alkalmazás", "Check for updates": "Frissítések keresése", "Allow starting when the tablet turns on": "Indulás engedélyezése a táblagép bekapcsolásakor",
   "The app starts by itself after the tablet boots once Android allows it to “display over other apps”. The frame itself updates automatically; only changes to the app shell need a new download.": "Az alkalmazás magától elindul a táblagép bekapcsolása után, ha az Android engedélyezi neki a „megjelenítés más alkalmazások felett” jogot. Maga a képkeret automatikusan frissül; csak az alkalmazáskeret változásaihoz kell új letöltés.",
@@ -1511,7 +1542,7 @@ const HU = Object.assign(Object.create(null), {
   "Automatic switching": "Automatikus váltás", "Now Playing look": "A Most szól nézet megjelenése", "Location": "Helyszín", "Weather screens": "Időjárás-képernyők",
   "Home screen background": "A kezdőlap háttere", "Seasons": "Évszakok", "Time-of-day preview": "Napszak-előnézet", "Debugging": "Hibakeresés", "About": "Névjegy",
   ". It is stored only in this browser.": ". Csak ebben a böngészőben van tárolva.",
-  "Photo frame v40. Weather data provided by": "Képkeret v40. Időjárási adatok:",
+  "Photo frame v41. Weather data provided by": "Képkeret v41. Időjárási adatok:",
   ". Radar by RainViewer, map © OpenStreetMap contributors, tempo data from Deezer, picture of the day from Wikimedia Commons.": ". Radar: RainViewer, térkép: © OpenStreetMap közreműködők, tempóadatok: Deezer, a nap képe: Wikimedia Commons.",
   "Opens the Sun view at golden hour, sunrise, sunset and solar noon, the Moon view at moonrise and full moon, and the Weather overview during rain or storms. 10 minutes after the event is over it goes back to Home, unless you picked another screen in the meantime.": "Aranyórakor, napkeltekor, napnyugtakor és delelésekor a Nap nézetet, holdkeltekor és teliholdkor a Hold nézetet, eső vagy vihar idején az időjárás-áttekintést nyitja meg. 10 perccel az esemény vége után visszatér a kezdőlapra, hacsak közben nem választottál másik képernyőt.",
   "Debug mode (show technical information on every screen)": "Hibakereső mód (technikai információk minden képernyőn)",
@@ -1797,6 +1828,10 @@ const PAT = [
   [/^App version (.+)$/, a => `Alkalmazás verziója: ${a}`],
   [/^Update available: (.+) – tap to download$/, a => `Frissítés érhető el: ${a} – koppints a letöltéshez`],
   [/^App update available \((.+)\)$/, a => `Alkalmazásfrissítés érhető el (${a})`],
+  [/^Light sensor: (\d+) lux(?: → brightness (\d+)%)?$/, (a, b) => `Fényérzékelő: ${a} lux${b ? ' → fényerő ' + b + '%' : ''}`],
+  [/^Camera: room level (\d+)%(.*?)(?: → brightness (\d+)%)?$/, (a, b, c) => `Kamera: a szoba fénye ${a}%${b.replace('fixed exposure', 'rögzített expozíció').replace('exposure', 'expozíció')}${c ? ' → fényerő ' + c + '%' : ''}`],
+  [/^The camera could not be used: (.+)$/, a => `A kamera nem használható: ${a}`],
+  [/^brighter \+(\d+)$/, a => `világosabb +${a}`], [/^darker (-\d+)$/, a => `sötétebb ${a}`],
   [/^(.+), Hungary$/, a => `${a}, Magyarország`]
 ];
 
@@ -4543,11 +4578,15 @@ addEventListener('pointermove', e => { if(lpT && Math.hypot(e.clientX - lpX, e.c
 ['pointerup', 'pointercancel'].forEach(n => addEventListener(n, () => { clearTimeout(lpT); lpT = 0; }, true));
 addEventListener('contextmenu', e => { if(lpOk(e)){ e.preventDefault(); lpAt = Date.now(); openSheet(e.clientX); } });
 
-/* ---------------------------------------------------------------- night dimming */
+/* ---------------------------------------------------------------- screen brightness
+   Modes (cfg.dimMode): off = the tablet's own brightness · sun / schedule = night dimming ·
+   sensor = automatic from the ambient light sensor (app) · camera = automatic from the front camera.
+   In the app the real backlight is changed; in a browser a dark layer is used instead. */
 const dim = el('<div id="dimlayer"></div>'); document.body.appendChild(dim);
-let boostUntil = 0, boostT = 0;
-function dimTarget(){
-  const mode = cfg.dimMode || 'off'; if(mode === 'off') return 0;
+let boostUntil = 0, boostT = 0, previewUntil = 0, previewLvl = 0, curDim = 0, natDim = true;
+const AUTO = { b: null, target: null, info: '', err: '', lux: -1, cam: null, camAt: 0, camBusy: false, sensorOn: false };
+function nightLevel(){
+  const mode = cfg.dimMode;
   const lvl = Math.min(.9, Math.max(.05, (+cfg.dimLevel || 60) / 100)), n = new Date(), m = n.getHours() * 60 + n.getMinutes() + n.getSeconds() / 60, R = 45;
   let a, b;
   if(mode === 'schedule'){ a = hm2m(cfg.dimFrom); b = hm2m(cfg.dimTo); }
@@ -4559,23 +4598,120 @@ function dimTarget(){
   const since = ((m - a) % 1440 + 1440) % 1440, until = ((b - m) % 1440 + 1440) % 1440;
   return lvl * Math.min(1, since / R, until / R);
 }
+const autoMode = () => cfg.dimMode === 'sensor' || cfg.dimMode === 'camera';
+function dimTarget(){
+  if(Date.now() < previewUntil) return previewLvl;
+  if(cfg.dimMode === 'sun' || cfg.dimMode === 'schedule') return nightLevel();
+  if(autoMode() && AUTO.b !== null) return 1 - AUTO.b;
+  return 0;
+}
 function dimTick(){
   let v = dimTarget();
   if(Date.now() < boostUntil) v *= .2;
   if(!$('#ring').hidden) v = 0;
-  if(isApp()){
-    /* the app lowers the actual screen brightness instead of laying a dark layer over the picture */
-    const b = v > .01 ? Math.max(.02, 1 - v * 1.1) : -1;
-    if(dim._b !== b){ dim._b = b; nat('setBrightness', { value: b }).catch(() => {}); }
+  curDim = v;
+  if(isApp() && natDim){
+    /* the app changes the real backlight instead of laying a dark layer over the picture */
+    const b = v > .01 ? Math.max(.02, Math.round((1 - v) * 100) / 100) : -1;
+    if(dim._b !== b){ dim._b = b; nat('setBrightness', { value: b }).catch(() => { natDim = false; dim._b = undefined; dimTick(); }); }
     v = 0;
   }
   dim.style.opacity = v.toFixed(3); dim.classList.toggle('on', v > .01);
 }
 window.dimTick = dimTick;
 setInterval(dimTick, 20000);
+/* tap the dimmed screen: full brightness for a minute (works in the app too, where no dark layer is used) */
 addEventListener('pointerdown', () => {
-  if(+dim.style.opacity > .05){ boostUntil = Date.now() + 60000; dimTick(); clearTimeout(boostT); boostT = setTimeout(dimTick, 60500); }
+  if(curDim > .05 && Date.now() >= boostUntil){ boostUntil = Date.now() + 60000; dimTick(); clearTimeout(boostT); boostT = setTimeout(dimTick, 60500); }
 }, true);
+/* while dragging a strength slider in Settings, show the result for a few seconds */
+function previewDim(level){ previewLvl = Math.min(.95, Math.max(0, level)); previewUntil = Date.now() + 3500; dimTick(); clearTimeout(previewDim._t); previewDim._t = setTimeout(dimTick, 3600); }
+window.previewDim = previewDim;
+
+/* -------- automatic brightness */
+const clamp01 = x => Math.min(1, Math.max(0, x));
+function autoTarget(t){
+  const min = Math.min(.8, Math.max(.02, (+cfg.autoMin || 10) / 100)), adj = (+cfg.autoAdj || 0) / 100;
+  return Math.min(1, Math.max(min, min + (1 - min) * clamp01(t) + adj));
+}
+/* lux → 0..1 on a log scale: ~1 lux is a dark room, ~800 lux and up is daylight indoors */
+const luxToT = lux => clamp01(Math.log10(Math.max(0, lux) + 1) / Math.log10(800));
+async function startSensor(){
+  if(AUTO.sensorOn) return true;
+  if(!isApp()){ AUTO.err = 'The light sensor can only be used in the Android app.'; return false; }
+  try {
+    const r = await nat('startLight');
+    if(!r.available){ AUTO.err = 'No light sensor was found on this tablet. Try the camera mode.'; return false; }
+    AUTO.sensorOn = true; AUTO.err = ''; return true;
+  } catch { AUTO.err = 'Update the app (version 1.1.0 or newer) to use the light sensor.'; return false; }
+}
+function stopSensor(){ if(AUTO.sensorOn){ AUTO.sensorOn = false; nat('stopLight').catch(() => {}); } }
+/* one short look through the front camera: average brightness of a tiny frame (nothing is stored or sent) */
+async function camMeasure(){
+  if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('The camera is not available here.');
+  const st = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user', width: { ideal: 320 }, height: { ideal: 240 } }, audio: false });
+  const tr = st.getVideoTracks()[0], v = document.createElement('video');
+  let manual = false;
+  try {
+    const c = tr.getCapabilities ? tr.getCapabilities() : {};
+    if(c.exposureMode && c.exposureMode.includes('manual') && c.exposureTime){
+      await tr.applyConstraints({ advanced: [{ exposureMode: 'manual', exposureTime: Math.min(c.exposureTime.max, Math.max(c.exposureTime.min, 333)) }] });
+      manual = true;
+    }
+  } catch {}
+  try {
+    v.muted = true; v.playsInline = true; v.srcObject = st;
+    await v.play();
+    await new Promise(r => setTimeout(r, 1500));
+    const c = document.createElement('canvas'); c.width = 32; c.height = 24;
+    const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(v, 0, 0, 32, 24);
+    const d = g.getImageData(0, 0, 32, 24).data; let sum = 0;
+    for(let i = 0; i < d.length; i += 4) sum += .2126 * d[i] + .7152 * d[i + 1] + .0722 * d[i + 2];
+    const set = tr.getSettings ? tr.getSettings() : {};
+    return { lum: sum / (d.length / 4) / 255, manual, exp: +set.exposureTime || 0 };
+  } finally { st.getTracks().forEach(t => t.stop()); v.srcObject = null; }
+}
+/* cameras correct their own exposure, so the exposure time (when the camera reports it) tells more than the picture alone */
+function camToT(m){
+  if(m.manual) return clamp01(Math.pow(m.lum, .7) * 1.25);
+  if(m.exp > 0){ const ev = m.lum / (m.exp / 100); return clamp01((Math.log10(ev * 1000 + 1) - 1.3) / 2); }
+  return clamp01(m.lum * 1.4);
+}
+async function camStep(force){
+  if(AUTO.camBusy || document.hidden || awayMode) return;
+  const every = (LITE ? 120 : 60) * 1000;
+  if(!force && Date.now() - AUTO.camAt < every) return;
+  AUTO.camBusy = true; AUTO.camAt = Date.now();
+  try {
+    const m = await camMeasure(); AUTO.cam = m; AUTO.err = '';
+    AUTO.target = autoTarget(camToT(m));
+    AUTO.info = 'Camera: room level ' + Math.round(camToT(m) * 100) + '%' + (m.manual ? ' (fixed exposure)' : m.exp ? ' (exposure ' + (m.exp / 10).toFixed(1) + ' ms)' : '');
+  } catch(e){
+    AUTO.err = /Permission|NotAllowed/i.test(e.name + ' ' + e.message) ? 'Camera access was not allowed. Allow it to use camera mode.' : 'The camera could not be used: ' + e.message;
+  } finally { AUTO.camBusy = false; }
+}
+async function autoStep(){
+  if(!autoMode()){ stopSensor(); AUTO.err = ''; AUTO.info = ''; if(AUTO.b !== null){ AUTO.b = null; AUTO.target = null; dimTick(); } return; }
+  if(cfg.dimMode === 'sensor'){
+    if(!(await startSensor())){ AUTO.target = null; AUTO.info = ''; }
+    else {
+      try {
+        const r = await nat('getLight'); AUTO.lux = r.lux;
+        if(r.lux >= 0){ AUTO.target = autoTarget(luxToT(r.lux)); AUTO.info = 'Light sensor: ' + Math.round(r.lux) + ' lux'; }
+        else AUTO.info = 'Waiting for the light sensor…';
+      } catch {}
+    }
+  } else { stopSensor(); camStep(false); }
+  if(AUTO.target === null) return;
+  /* smooth changes: brighten fairly quickly, darken slowly, ignore tiny flicker */
+  if(AUTO.b === null) AUTO.b = AUTO.target;
+  else { const d = AUTO.target - AUTO.b; if(Math.abs(d) > .015) AUTO.b += d * (d > 0 ? .35 : .12); }
+  dimTick();
+}
+setInterval(autoStep, 1500);
+window.brightInfo = () => ({ mode: cfg.dimMode || 'off', dim: +curDim.toFixed(2), auto: AUTO.b === null ? '-' : Math.round(AUTO.b * 100) + '%', reading: AUTO.info || '-', problem: AUTO.err || '-', backlight: isApp() && natDim });
+window.brightReadout = () => AUTO.err ? AUTO.err : AUTO.info ? AUTO.info + (AUTO.b !== null ? ' → brightness ' + Math.round(AUTO.b * 100) + '%' : '') : '';
+window.camMeasureNow = () => camStep(true);
 
 /* ---------------------------------------------------------------- calendar (iCal) */
 let calEvents = [], calErr = '', calT = 0;
@@ -5087,7 +5223,7 @@ if((cfg.tilePotd || 'photos') !== 'photos') fetchPotd();
 $('#set').addEventListener('click', () => {
   $('#trans').value = cfg.trans; $('#pairpt').checked = cfg.pairPortraits !== false; $('#keepph').checked = cfg.keepPhotos !== false; $('#potd').checked = cfg.potd !== false; $('#tilepotd').value = cfg.tilePotd || 'photos';
   $('#dimmode').value = cfg.dimMode; $('#dimfrom').value = cfg.dimFrom; $('#dimto').value = cfg.dimTo; $('#dimlvl').value = cfg.dimLevel; $('#dimlvlv').textContent = cfg.dimLevel + '%';
-  $('#dimsched').hidden = cfg.dimMode !== 'schedule';
+  $('#automin').value = cfg.autoMin || 10; $('#autoadj').value = cfg.autoAdj || 0; dimUi();
   $('#ical').value = cfg.icalUrl; $('#icalproxy').value = cfg.icalProxy; $('#icalres').textContent = calErr; $('#icalres').className = 'wxres' + (calErr ? ' bad' : '');
   $('#wxwarn').checked = cfg.wxWarn !== false; $('#seasonal').checked = cfg.seasonal !== false; $('#edgeswipe').checked = cfg.edgeSwipe !== false;
   $('#phunhide').hidden = !hidden.size; $('#phunhide span').textContent = tr('Show hidden photos again') + ' (' + hidden.size + ')';
@@ -5098,8 +5234,33 @@ $('#set').addEventListener('click', () => {
     info.textContent = n ? n + ' photos saved on this tablet' + used : 'No photos saved on this tablet yet';
   }).catch(() => {});
 });
-$('#dimmode').onchange = () => { $('#dimsched').hidden = $('#dimmode').value !== 'schedule'; };
-$('#dimlvl').oninput = () => { $('#dimlvlv').textContent = $('#dimlvl').value + '%'; };
+function dimUi(){
+  const m = $('#dimmode').value;
+  $('#dimnight').hidden = !(m === 'sun' || m === 'schedule'); $('#dimsched').hidden = m !== 'schedule';
+  $('#dimauto').hidden = !(m === 'sensor' || m === 'camera'); $('#camtestrow').hidden = m !== 'camera';
+  $('#autominv').textContent = $('#automin').value + '%';
+  const a = +$('#autoadj').value; $('#autoadjv').textContent = a === 0 ? 'normal' : (a > 0 ? 'brighter +' : 'darker ') + a;
+  $('#autonote').textContent = m === 'camera' ? 'About once a minute the front camera takes one tiny, blurry reading of the room light. Nothing is saved or sent anywhere. Android shows a small camera dot while it measures.'
+    : m === 'sensor' ? (isApp() ? 'Uses the tablet’s ambient light sensor, like phone auto-brightness.' : 'The light sensor only works in the Android app. In a browser, use the camera mode.') : '';
+}
+$('#dimmode').onchange = () => {
+  dimUi();
+  /* try the chosen mode right away (live readout and preview); Cancel or closing without saving puts the saved one back */
+  const m = $('#dimmode').value;
+  if(cfg._tryMode === undefined) cfg._tryMode = cfg.dimMode || 'off';
+  cfg.dimMode = m;
+  if(m === 'camera') camMeasureNow();
+  dimTick();
+};
+const undoTry = () => { if(cfg._tryMode !== undefined){ cfg.dimMode = cfg._tryMode; delete cfg._tryMode; dimTick(); } };
+$('#cancel').addEventListener('click', undoTry);
+$('#dlg').addEventListener('cancel', undoTry);
+$('#dlg').addEventListener('close', undoTry);
+$('#automin').oninput = () => { dimUi(); previewDim(1 - (+$('#automin').value / 100)); };
+$('#autoadj').oninput = dimUi;
+$('#camtest').onclick = () => { $('#autoread').textContent = 'Measuring…'; camMeasureNow().then(() => { $('#autoread').textContent = brightReadout() || 'Waiting for a reading…'; }); };
+setInterval(() => { if($('#dlg').open && !$('#dimauto').hidden) $('#autoread').textContent = brightReadout() || 'Waiting for a reading…'; }, 1000);
+$('#dimlvl').oninput = () => { $('#dimlvlv').textContent = $('#dimlvl').value + '%'; previewDim(+$('#dimlvl').value / 100); };
 $('#phclear').onclick = async () => { try { await photoStore.clear(); } catch {} $('#phstore').textContent = tr('No photos saved on this tablet yet'); };
 $('#phunhide').onclick = () => { hidden.clear(); jset('pf-hidden', []); $('#phunhide').hidden = true; if(allPhotos.length) setPhotos(shuffle(allPhotos.slice())); toast(tr('Hidden photos are back in the slideshow')); };
 $('#icaltest').onclick = async () => {
@@ -5113,7 +5274,7 @@ $('#icaltest').onclick = async () => {
 $('#save').addEventListener('click', () => {
   const was = { ical: cfg.icalUrl + '|' + cfg.icalProxy, keep: cfg.keepPhotos, potd: cfg.potd, seasonal: cfg.seasonal };
   cfg.trans = $('#trans').value; cfg.pairPortraits = $('#pairpt').checked; cfg.keepPhotos = $('#keepph').checked; cfg.potd = $('#potd').checked; const tpWas = cfg.tilePotd || 'photos'; cfg.tilePotd = $('#tilepotd').value;
-  cfg.dimMode = $('#dimmode').value; cfg.dimFrom = $('#dimfrom').value || '22:00'; cfg.dimTo = $('#dimto').value || '07:00'; cfg.dimLevel = +$('#dimlvl').value || 60;
+  if(cfg._tryMode !== undefined) delete cfg._tryMode; cfg.dimMode = $('#dimmode').value; cfg.autoMin = +$('#automin').value || 10; cfg.autoAdj = +$('#autoadj').value || 0; cfg.dimFrom = $('#dimfrom').value || '22:00'; cfg.dimTo = $('#dimto').value || '07:00'; cfg.dimLevel = +$('#dimlvl').value || 60;
   cfg.icalUrl = $('#ical').value.trim(); cfg.icalProxy = $('#icalproxy').value.trim();
   cfg.wxWarn = $('#wxwarn').checked; cfg.seasonal = $('#seasonal').checked; cfg.edgeSwipe = $('#edgeswipe').checked;
   saveCfg();
@@ -5416,7 +5577,7 @@ window.dbgMusic = () => ({ source: cfg.musicSrc, spotifyReady: spReady(), tokenE
    v38.1: debug mode – technical information on every screen
    ===================================================================== */
 (() => {
-const VERSION = 'v40' + (isApp() ? ' (app)' : '');
+const VERSION = 'v41' + (isApp() ? ' (app)' : '');
 const hud = document.createElement('div'); hud.id = 'dbg'; hud.hidden = true; hud.setAttribute('data-nt', '');
 document.body.appendChild(hud);
 const t0 = Date.now();
@@ -5471,6 +5632,7 @@ function render(){
   if(view === 'radar' && sc === 'radar') h += sec('Radar', { frames: v.radarFrames, loaded: v.radarAge });
   if(isWxView(view) && sc === view) h += sec('Warnings', { active: v.warnings });
   if(sc === 'clock'){ const n = $('#ck-name'); h += sec('Clock', { face: (n ? n.textContent : '-') + ' (#' + ((cfg.face | 0) + 1) + ')', timer: v.timerLeft, alarm: v.alarm }); }
+  if(window.brightInfo) h += sec('Brightness', brightInfo());
   h += sec('Extras', { dim: v.dim, snow: v.snow, favourites: v.favourites, hidden: v.hidden, savedLibrary: v.savedLibrary, pictureOfTheDay: v.potd });
   hud.innerHTML = h;
 }
@@ -5550,12 +5712,14 @@ async function checkWeb(){
   if(!/^https:$/.test(location.protocol)) return null;
   try {
     const v = await (await fetch('version.json?t=' + Date.now(), { cache: 'no-store' })).json();
-    if(v.web && v.web !== window.WEB_VERSION) pendingReload = true;
+    /* reload once per published version, so a mismatched version.json can never cause a reload loop */
+    let tried = ''; try { tried = localStorage.getItem('pf-reload-for') || ''; } catch {}
+    if(v.web && v.web !== window.WEB_VERSION && tried !== v.web) pendingReload = v.web;
     return v;
   } catch { return null; }
 }
 const quiet = () => !isMusicPlaying && !$('#dlg').open && $('#setup').hidden && $('#ring').hidden && !awayMode;
-setInterval(() => { if(pendingReload && quiet() && (!$('#home').hidden || view === 'photos' || isWxView(view))) location.reload(); }, 30000);
+setInterval(() => { if(pendingReload && quiet() && (!$('#home').hidden || view === 'photos' || isWxView(view))){ try { localStorage.setItem('pf-reload-for', pendingReload); } catch {} location.reload(); } }, 30000);
 setInterval(checkWeb, 3 * 3600000);
 setTimeout(checkWeb, 60000);
 /* a fresh start every night at 4:00 keeps a frame that runs for weeks healthy */
@@ -5607,7 +5771,7 @@ async function officialWarnings(){
 }
 if(isApp()){
   setTimeout(officialWarnings, 5000);
-  setInterval(officialWarnings, 15 * 60000);
+  setInterval(officialWarnings, 30 * 60000);
   $('#save').addEventListener('click', () => setTimeout(officialWarnings, 1500));
 }
 
