@@ -9,6 +9,7 @@ on:
       - 'capacitor.config.json'
       - 'package.json'
       - 'package-lock.json'
+      - 'release-notes.md'
       - '.github/workflows/android.yml'
   workflow_dispatch:
 
@@ -66,6 +67,8 @@ jobs:
           TAG="v${{ steps.v.outputs.name }}"
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" photo-frame.apk --clobber
+            if [ -s release-notes.md ]; then gh release edit "$TAG" --notes-file release-notes.md; fi
           else
-            gh release create "$TAG" photo-frame.apk --title "photo-frame $TAG" --notes "Android app shell $TAG (build ${{ github.run_number }}). Install photo-frame.apk on the tablet." --latest
+            if [ -s release-notes.md ]; then NOTES=(--notes-file release-notes.md); else NOTES=(--notes "Android app $TAG (build ${{ github.run_number }}). Install photo-frame.apk on the tablet."); fi
+            gh release create "$TAG" photo-frame.apk --title "photo-frame $TAG" "${NOTES[@]}" --latest
           fi

@@ -1,6 +1,11 @@
 package io.github.l1vef4stdieyoung.photoframe;
 
+import android.content.Context;
 import android.content.Intent;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.content.pm.PackageInfo;
 import android.net.Uri;
 import android.os.Build;
@@ -120,6 +125,64 @@ public class FramePlugin extends Plugin {
             call.reject(e.getMessage());
         }
     }
+
+    /* ---------------- ambient light sensor (for automatic brightness) ---------------- */
+    private SensorManager sensors;
+    private Sensor lightSensor;
+    private SensorEventListener lightListener;
+    private volatile float lastLux = -1f;
+    private boolean lightWanted = false;
+
+    private void registerLight() {
+        if (sensors == null) sensors = (SensorManager) getContext().getSystemService(Context.SENSOR_SERVICE);
+        if (sensors == null) return;
+        if (lightSensor == null) lightSensor = sensors.getDefaultSensor(Sensor.TYPE_LIGHT);
+        if (lightSensor == null || lightListener != null) return;
+        lightListener = new SensorEventListener() {
+            @Override public void onSensorChanged(SensorEvent e) { lastLux = e.values[0]; }
+            @Override public void onAccuracyChanged(Sensor s, int accuracy) { }
+        };
+        sensors.registerListener(lightListener, lightSensor, SensorManager.SENSOR_DELAY_NORMAL);
+    }
+
+    private void unregisterLight() {
+        if (sensors != null && lightListener != null) sensors.unregisterListener(lightListener);
+        lightListener = null;
+    }
+
+    /** Starts listening to the light sensor. Resolves { available, max }. */
+    @PluginMethod
+    public void startLight(PluginCall call) {
+        lightWanted = true;
+        registerLight();
+        JSObject res = new JSObject();
+        res.put("available", lightSensor != null);
+        res.put("max", lightSensor != null ? lightSensor.getMaximumRange() : 0);
+        call.resolve(res);
+    }
+
+    /** Latest reading in lux (-1 until the sensor has reported). */
+    @PluginMethod
+    public void getLight(PluginCall call) {
+        JSObject res = new JSObject();
+        res.put("available", lightSensor != null);
+        res.put("lux", lastLux);
+        call.resolve(res);
+    }
+
+    @PluginMethod
+    public void stopLight(PluginCall call) {
+        lightWanted = false;
+        unregisterLight();
+        call.resolve();
+    }
+
+    /* the sensor only runs while the app is on screen */
+    @Override
+    protected void handleOnPause() { super.handleOnPause(); unregisterLight(); }
+
+    @Override
+    protected void handleOnResume() { super.handleOnResume(); if (lightWanted) registerLight(); }
 
     private String version() {
         try {
