@@ -78,9 +78,9 @@ A tile layout you return to from every screen.
 - **Alarm:** every day or once, with a 9-minute snooze.
 
 ###  QOL Features
-- **Night dimming:** after sunset or on a schedule, fading gradually over 45 minutes. In the Android app it lowers the real backlight. Tap to brighten it for a minute.
+- **Brightness Control:** You can set the app to automatically lower either your devices brightness in the android app or the htmls brightness according to your own schedule, sunset and sunrise, your devices camera or light sensor. you can also set how much the brightness is turned up or down.
 - **Away mode:** a black screen with a slowly drifting clock, to protect the screen from burn-in.
-- **Seasonal touches:** holidays, Hungarian name days, and gentle snow from December to early January.
+- **Seasonal touches:** holidays, Hungarian name days, and gentle snow on the screen from December to early January.
 - **Languages:** English and Hungarian, switchable at any time.
 - **Light performance mode for slow tablets:** no frosted-glass blur, lower frame rates and smaller images. It's chosen automatically on weak devices.
 
