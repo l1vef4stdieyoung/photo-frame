@@ -1,0 +1,11 @@
+<!doctype html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Photo frame</title>
+<style>html,body{height:100%;margin:0;background:#0d0c0b;color:#fff;font-family:system-ui,sans-serif}body{display:grid;place-content:center;text-align:center;gap:14px}h1{font-weight:300;font-size:2rem;margin:0}p{opacity:.65;margin:0}</style></head>
+<body><h1>Waiting for the network…</h1><p>The photo frame will open as soon as the tablet is online.</p><p id="n"></p>
+<script>
+/* shown by the app when the frame cannot be loaded; keeps retrying */
+const BASE = 'https://l1vef4stdieyoung.github.io/photo-frame/';
+let s = 15;
+setInterval(() => { s--; document.getElementById('n').textContent = 'Trying again in ' + Math.max(0, s) + ' s'; if(s <= 0){ s = 15; location.href = BASE; } }, 1000);
+addEventListener('online', () => { location.href = BASE; });
+</script></body></html>

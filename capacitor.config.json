@@ -1,0 +1,15 @@
+{
+  "appId": "io.github.l1vef4stdieyoung.photoframe",
+  "appName": "photo-frame",
+  "webDir": "www",
+  "server": {
+    "url": "https://l1vef4stdieyoung.github.io/photo-frame/",
+    "errorPath": "offline.html",
+    "androidScheme": "https"
+  },
+  "android": {
+    "appendUserAgent": "PhotoFrameApp",
+    "webContentsDebuggingEnabled": true,
+    "backgroundColor": "#0d0c0b"
+  }
+}

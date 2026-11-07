@@ -1,0 +1,14 @@
+{
+  "name": "photo-frame",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Photo frame tablet app (Capacitor shell around the hosted frame)",
+  "scripts": {
+    "sync": "cap sync android"
+  },
+  "dependencies": {
+    "@capacitor/android": "^8.6.0",
+    "@capacitor/cli": "^8.6.0",
+    "@capacitor/core": "^8.6.0"
+  }
+}
