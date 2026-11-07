@@ -5207,7 +5207,8 @@ async function spCallback(){
   const q = new URLSearchParams(location.search);
   if(!q.has('code') && !q.has('error')) return false;
   const pk = jget('pf-sp-pkce', null);
-  history.replaceState(null, '', spRedirect());
+  /* tidy the address bar to this page (never the photoframe:// login address, which the browser refuses) */
+  history.replaceState(null, '', location.origin + location.pathname);
   localStorage.removeItem('pf-sp-pkce');
   if(q.get('error') || !pk || q.get('state') !== pk.state){ toast('Spotify was not connected'); return true; }
   try {
@@ -5402,7 +5403,7 @@ document.addEventListener('cfgchange', () => { curKey = ''; pollFm(); });
 window.dbgMusic = () => ({ source: cfg.musicSrc, spotifyReady: spReady(), tokenExpiresIn: SP.tok ? Math.round((SP.tok.exp - Date.now()) / 1000) + ' s' : '-', spotifyError: SP.err || '-', spotifyPlaying: SP.prog ? SP.prog.playing : '-', spotifyPos: SP.prog ? Math.round((SP.prog.ms + (SP.prog.playing ? Date.now() - SP.prog.at : 0)) / 1000) + ' / ' + Math.round(SP.prog.dur / 1000) + ' s' : '-', bpm: curBpm || (curKey ? 'unknown' : '-'), bpmCached: Object.keys(bpmCache).length, beatPulse: $('#bgart').classList.contains('beat'), beatInterval: curBpm ? (60 / curBpm).toFixed(3) + ' s' : '-', track: curKey });
 /* ---------------------------------------------------------------- start */
 (async () => {
-  const back = await spCallback();
+  let back = false; try { back = await spCallback(); } catch {}
   const resume = jget('pf-su-resume', null);
   if(back && resume !== null){ localStorage.removeItem('pf-su-resume'); setTimeout(() => { if(window.setupShow) setupShow(resume); const st = $('#su-spstatus'); if(st) st.textContent = spStatusText(); }, 300); }
   pollFm();
