@@ -17,6 +17,14 @@ $GradlePath = Join-Path $Repo 'android\app\build.gradle'
 $ApkFolder = Join-Path (Split-Path -Parent $Repo) 'apk'
 
 $script:LogBox = $null
+
+# Who commits are credited to: 'bot' = photo-frame push-o-matic (a made-up name, no GitHub account), 'me' = your Git name.
+$BotName = 'photo-frame push-o-matic'
+$BotMail = 'push-o-matic@photo-frame.local'
+$PrefsPath = Join-Path $env:APPDATA 'photo-frame-publisher.json'
+$script:CommitAs = 'bot'
+try { if (Test-Path $PrefsPath) { $p = Get-Content $PrefsPath -Raw | ConvertFrom-Json; if ($p.commitAs -in @('bot', 'me')) { $script:CommitAs = $p.commitAs } } } catch { }
+function Save-Prefs { try { @{ commitAs = $script:CommitAs } | ConvertTo-Json | Set-Content -Path $PrefsPath -Encoding ascii } catch { } }
 function Log([string]$text) {
     if ($script:LogBox) {
         $script:LogBox.AppendText(($text -replace "`r?`n", "`r`n") + "`r`n")
@@ -43,6 +51,7 @@ function Get-GitText([string[]]$GitArgs) {
     return $out.Trim()
 }
 function Get-Identity {
+    if ($script:CommitAs -eq 'bot') { return @("user.name=$BotName", "user.email=$BotMail") }
     $name = Get-GitText @('config', 'user.name')
     $mail = Get-GitText @('config', 'user.email')
     $owner = (Get-SiteInfo).Owner
@@ -64,6 +73,7 @@ function Commit-And-Push([string[]]$Paths, [string]$Message) {
     if (-not $staged) { Log 'Nothing to commit - no changes.'; return $false }
     $id = Get-Identity
     if ((Invoke-Git @('-c', $id[0], '-c', $id[1], 'commit', '-m', $Message)) -ne 0) { throw 'git commit failed' }
+    Log ("Committed as: " + $id[0].Substring(10))
     Log 'Pushing to GitHub...'
     if ((Invoke-Git @('push')) -ne 0) { throw 'git push failed - check your internet connection or GitHub login' }
     Log 'Pushed.'
@@ -296,12 +306,21 @@ $dl.Add_Click({
 # ---------------- bottom: log + shortcuts
 $logBox = New-Object System.Windows.Forms.TextBox
 $logBox.Multiline = $true; $logBox.ReadOnly = $true; $logBox.ScrollBars = 'Vertical'
-$logBox.Location = New-Object System.Drawing.Point(12, 360); $logBox.Size = New-Object System.Drawing.Size(820, 250)
+$logBox.Location = New-Object System.Drawing.Point(12, 396); $logBox.Size = New-Object System.Drawing.Size(820, 214)
 $logBox.Anchor = 'Top,Bottom,Left,Right'
 $logBox.Font = New-Object System.Drawing.Font('Consolas', 9.5)
 $logBox.BackColor = [System.Drawing.Color]::FromArgb(24, 24, 28); $logBox.ForeColor = [System.Drawing.Color]::FromArgb(220, 230, 240)
 $form.Controls.Add($logBox)
 $script:LogBox = $logBox
+
+New-Label $form 'Commit as:' 14 358 90 | Out-Null
+$asBox = New-Object System.Windows.Forms.ComboBox
+$asBox.DropDownStyle = 'DropDownList'; $asBox.Location = New-Object System.Drawing.Point(104, 358); $asBox.Size = New-Object System.Drawing.Size(340, 28)
+$meName = Get-GitText @('config', 'user.name'); if (-not $meName) { $meName = (Get-SiteInfo).Owner }
+[void]$asBox.Items.Add("$BotName"); [void]$asBox.Items.Add("Me ($meName)")
+$asBox.SelectedIndex = if ($script:CommitAs -eq 'me') { 1 } else { 0 }
+$asBox.Add_SelectedIndexChanged({ $script:CommitAs = if ($asBox.SelectedIndex -eq 1) { 'me' } else { 'bot' }; Save-Prefs; Log ('Commits will be credited to: ' + $asBox.SelectedItem) })
+$form.Controls.Add($asBox)
 
 $open = New-Button $form 'Open website' 12 620 150 34; $open.Anchor = 'Bottom,Left'
 $gh = New-Button $form 'Open GitHub' 172 620 150 34; $gh.Anchor = 'Bottom,Left'
