@@ -1,5 +1,6 @@
 package io.github.l1vef4stdieyoung.photoframe;
 
+import android.app.ActivityManager;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
@@ -95,7 +96,36 @@ public class FramePlugin extends Plugin {
         res.put("version", version());
         res.put("android", Build.VERSION.RELEASE);
         res.put("overlay", Build.VERSION.SDK_INT < 23 || Settings.canDrawOverlays(getContext()));
+        // device details for the setup's device detection
+        String model = prop("ro.product.vendor.model");
+        if (model.isEmpty()) model = prop("ro.product.odm.model");
+        if (model.isEmpty()) model = Build.MODEL;
+        String maker = prop("ro.product.vendor.manufacturer");
+        if (maker.isEmpty() || "unknown".equalsIgnoreCase(maker)) maker = Build.MANUFACTURER;
+        res.put("model", model);
+        res.put("manufacturer", maker);
+        res.put("soc", Build.VERSION.SDK_INT >= 31 ? Build.SOC_MODEL : Build.HARDWARE);
+        res.put("tablet", getContext().getResources().getConfiguration().smallestScreenWidthDp >= 600);
+        res.put("cores", Runtime.getRuntime().availableProcessors());
+        try {
+            ActivityManager am = (ActivityManager) getContext().getSystemService(Context.ACTIVITY_SERVICE);
+            ActivityManager.MemoryInfo mi = new ActivityManager.MemoryInfo();
+            am.getMemoryInfo(mi);
+            res.put("ramMb", mi.totalMem / 1048576L);
+            res.put("lowRam", am.isLowRamDevice());
+        } catch (Exception ignored) { }
         call.resolve(res);
+    }
+
+    /** Reads a system property (e.g. the real model on custom Android builds); "" when unavailable. */
+    private static String prop(String key) {
+        try {
+            Class<?> sp = Class.forName("android.os.SystemProperties");
+            Object v = sp.getMethod("get", String.class).invoke(null, key);
+            return v == null ? "" : v.toString().trim();
+        } catch (Exception e) {
+            return "";
+        }
     }
 
     /** Opens a link outside the app (browser, Spotify login, APK download). */
