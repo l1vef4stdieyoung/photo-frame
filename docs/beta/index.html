@@ -1174,6 +1174,13 @@ body.themed .su-list li.done .n svg{stroke:var(--accent-ink)}
 #bartv{position:absolute;left:0;top:0;width:0;height:0;object-fit:cover;pointer-events:none;opacity:0;transition:opacity 1.2s ease;background:transparent;z-index:1}
 #bartv.on{opacity:1}
 #bartv[hidden]{display:none}
+
+/* ===== v46: the Now Playing colours swirl to the beat ===== */
+#bgart.swirl i{rotate:calc(var(--sw,0deg) * var(--dir,1));scale:calc(1 + var(--kick,0) * .07)}
+#bgart.swirl i:nth-child(2){--dir:-1.25}
+#bgart.swirl i:nth-child(3){--dir:.8}
+#bgart.swirl i:nth-child(4){--dir:-.9}
+#bgart.swirl .beatfx{animation:none;opacity:calc(var(--kick,0) * .7);transform:scale(calc(1 + var(--kick,0) * .05))}
 </style>
 </head>
 <body class="idle">
@@ -1486,7 +1493,9 @@ body.themed .su-list li.done .n svg{stroke:var(--accent-ink)}
         <div class="bgpick" id="bgpick-su"></div>
         <div class="chips"><button class="chip" data-k="themeMatch">Match colours to the background</button></div>
         <span class="su-l">Now Playing background</span>
-        <div class="chips"><button class="chip" data-k="live" data-v="0">Still</button><button class="chip" data-k="live" data-v="30">Calm</button><button class="chip" data-k="live" data-v="75">Lively</button><button class="chip" data-k="beat">Pulse to the beat</button></div>
+        <div class="chips"><button class="chip" data-k="live" data-v="0">Still</button><button class="chip" data-k="live" data-v="30">Calm</button><button class="chip" data-k="live" data-v="75">Lively</button></div>
+        <span class="su-l">Background to the beat</span>
+        <div class="chips"><button class="chip" data-k="beatMode" data-v="tempo">Tempo</button><button class="chip" data-k="beatMode" data-v="spotify">Spotify</button><button class="chip" data-k="beatMode" data-v="mic">Microphone</button><button class="chip" data-k="beatMode" data-v="off">Off</button></div>
         <span class="su-l">Photo transitions</span>
         <div class="chips"><button class="chip" data-k="trans" data-v="fade">Fade</button><button class="chip" data-k="trans" data-v="slide">Slide</button><button class="chip" data-k="trans" data-v="zoom">Zoom</button><button class="chip" data-k="trans" data-v="kenburns">Slow zoom</button><button class="chip" data-k="trans" data-v="random">Mix of all</button></div>
         <span class="su-l">Home Photos tile shows</span>
@@ -1600,7 +1609,7 @@ body.themed .su-list li.done .n svg{stroke:var(--accent-ink)}
           <div class="wxrow" id="camtestrow"><button type="button" id="camtest">Measure now</button></div>
           <small id="autonote"></small>
         </div>
-        <small>Tap the screen to brighten it fully for a minute.</small>
+        <small>Tap the screen to brighten it for 5 seconds. The darker the screen, the smaller the step, so it doesn't dazzle you at night.</small>
       </div>
       <div class="sd-card">
         <h3>Night screen</h3>
@@ -1671,8 +1680,10 @@ body.themed .su-list li.done .n svg{stroke:var(--accent-ink)}
         <label for="live">Now playing background liveliness: <span id="livev"></span></label>
         <input id="live" type="range" min="0" max="100" step="5">
         <small>Shown in the large now playing view while a track is playing. 0 keeps the background still.</small>
-        <label class="ck" for="beatopt"><input id="beatopt" type="checkbox"> Pulse the Now Playing background to the song’s tempo (BPM)</label>
-        <small>The tempo is looked up on Deezer. Not every song has one; those simply don’t pulse.</small>
+        <label for="beatmode">Background to the beat</label>
+        <select id="beatmode"><option value="tempo">Tempo (the song's speed)</option><option value="spotify">Spotify (lines up with the song's position)</option><option value="mic">Microphone (listens to the music in the room)</option><option value="off">Off</option></select>
+        <small>The colours swirl with the music and get a push on every beat. <b>Tempo</b> uses the song's speed from Deezer, so it can be a little ahead of or behind the real beat. <b>Spotify</b> also uses where you are in the song (only when the music source is Spotify). <b>Microphone</b> hits the beat exactly when the music plays in the same room; the sound is analysed on this device and never recorded or sent anywhere (Android app 2.2.0 or newer, or a browser). If it can't hear a beat, it falls back to the tempo.</small>
+        <p class="sd-cur" id="beatinfo"></p>
         <label class="ck" for="motionart"><input id="motionart" type="checkbox"> Moving album covers (from Apple Music)</label>
         <small id="motioninfo2">When an album has an animated cover on Apple Music, it plays in place of the picture. Android app only (Apple's website can't be read by web pages); uses a few MB of data per album.</small>
         <label class="ck" for="elevateclock"><input id="elevateclock" type="checkbox"> Elevate clock when playing music (Now Playing screen only)</label>
@@ -1793,7 +1804,7 @@ body.themed .su-list li.done .n svg{stroke:var(--accent-ink)}
       </div>
       <div class="sd-card">
         <h3>About</h3>
-        <small>Photo frame v45. Weather data provided by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a>. Lyrics provided by <a href="https://lrclib.net/" target="_blank" rel="noopener">LRCLIB</a>. Radar by RainViewer, map © OpenStreetMap contributors, tempo data from Deezer, picture of the day from Wikimedia Commons.</small>
+        <small>Photo frame v46. Weather data provided by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a>. Lyrics provided by <a href="https://lrclib.net/" target="_blank" rel="noopener">LRCLIB</a>. Radar by RainViewer, map © OpenStreetMap contributors, tempo data from Deezer, picture of the day from Wikimedia Commons.</small>
       </div>
     </section>
 
@@ -1805,7 +1816,7 @@ body.themed .su-list li.done .n svg{stroke:var(--accent-ink)}
 /* ===== v40: Android app bridge =====
    Inside the photo-frame Android app, Capacitor provides window.Capacitor and the native "Frame" plugin.
    In a normal browser none of this exists and everything falls back to plain web behaviour. */
-window.WEB_VERSION = '45.1';
+window.WEB_VERSION = '46.0';
 window.FRAME_CHANNEL = /\/beta\/(index\.html)?$/.test(location.pathname) ? 'beta' : 'stable';
 /* the normal (stable) address of this frame, also used as the Spotify return address */
 window.STABLE_URL = location.origin + location.pathname.replace(/beta\/(index\.html)?$/, '').replace(/index\.html$/, '');
@@ -1851,6 +1862,12 @@ const HU = Object.assign(Object.create(null), {
   "Where are you?": "Hol vagy?",
   "Used for weather, sunrise, sunset and the moon. Currently:": "Az időjáráshoz, a napkeltéhez, a napnyugtához és a Holdhoz használjuk. Jelenleg:",
   "Search for a city": "Város keresése",
+  /* v46 beat + brightness */
+  "Background to the beat": "Háttér a zene ütemére", "Tempo": "Tempó", "Microphone": "Mikrofon", "Off": "Ki",
+  "Tempo (the song's speed)": "Tempó (a dal sebessége)", "Spotify (lines up with the song's position)": "Spotify (a dal pozíciójához igazodik)", "Microphone (listens to the music in the room)": "Mikrofon (a szobában szóló zenét hallgatja)",
+  "Waiting for music": "Zenére vár", "Following the microphone": "A mikrofont követi", "Following the song position on Spotify": "A Spotify dalpozícióját követi", "Following the tempo": "A tempót követi",
+  "The microphone needs app version 2.2.0 or newer.": "A mikrofonhoz 2.2.0-s vagy újabb alkalmazásverzió kell.", "Microphone access was not allowed.": "A mikrofon használata nincs engedélyezve.", "The microphone could not be used.": "A mikrofont nem sikerült használni.",
+  "Tap the screen to brighten it for 5 seconds. The darker the screen, the smaller the step, so it doesn't dazzle you at night.": "Koppints a képernyőre, és 5 másodpercre világosabb lesz. Minél sötétebb a képernyő, annál kevésbé, így éjjel nem vakít.",
   /* v45 moving covers */
   "Moving album covers (from Apple Music)": "Mozgó albumborítók (az Apple Musicról)",
   "When an album has an animated cover on Apple Music, it plays in place of the picture. Android app only (Apple's website can't be read by web pages); uses a few MB of data per album.": "Ha egy albumnak mozgó borítója van az Apple Musicon, a kép helyett az jelenik meg. Csak az Android-alkalmazásban (az Apple weboldalát a weboldalak nem olvashatják); albumonként néhány MB adatforgalommal jár.",
@@ -1943,7 +1960,7 @@ const HU = Object.assign(Object.create(null), {
   "Automatic switching": "Automatikus váltás", "Now Playing look": "A Most szól nézet megjelenése", "Location": "Helyszín", "Weather screens": "Időjárás-képernyők",
   "Home screen background": "A kezdőlap háttere", "Seasons": "Évszakok", "Time-of-day preview": "Napszak-előnézet", "Debugging": "Hibakeresés", "About": "Névjegy",
   ". It is stored only in this browser.": ". Csak ebben a böngészőben van tárolva.",
-  "Photo frame v45. Weather data provided by": "Képkeret v45. Időjárási adatok:",
+  "Photo frame v46. Weather data provided by": "Képkeret v46. Időjárási adatok:",
   ". Radar by RainViewer, map © OpenStreetMap contributors, tempo data from Deezer, picture of the day from Wikimedia Commons.": ". Radar: RainViewer, térkép: © OpenStreetMap közreműködők, tempóadatok: Deezer, a nap képe: Wikimedia Commons.",
   "Opens the Sun view at golden hour, sunrise, sunset and solar noon, the Moon view at moonrise and full moon, and the Weather overview during rain or storms. 5 minutes after the event is over it goes back to Home, unless you picked another screen in the meantime.": "Aranyórakor, napkeltekor, napnyugtakor és delelésekor a Nap nézetet, holdkeltekor és teliholdkor a Hold nézetet, eső vagy vihar idején az időjárás-áttekintést nyitja meg. 5 perccel az esemény vége után visszatér a kezdőlapra, hacsak közben nem választottál másik képernyőt.",
   "Debug mode (show technical information on every screen)": "Hibakereső mód (technikai információk minden képernyőn)",
@@ -2219,6 +2236,9 @@ const PAT = [
   [/^Severe cold, down to (-?\d+)°$/, a => `Erős hideg, akár ${a}°`],
   [/^From (\d\d:\d\d)$/, a => `${a}-tól`],
   [/^From (\d{1,2}:\d\d (AM|PM))$/, a => `${a}-tól`],
+  [/^(Following the microphone|Following the song position on Spotify|Following the tempo) \((\d+ BPM|tempo unknown)\)$/, (a, b) => `${tr(a)} (${b === 'tempo unknown' ? 'ismeretlen tempó' : b})`],
+  [/^Listening… no beat heard yet\. Using the tempo meanwhile \((\d+ BPM|tempo unknown)\)\.$/, a => `Figyel… még nem hallott ütemet. Addig a tempót követi (${a === 'tempo unknown' ? 'ismeretlen tempó' : a}).`],
+  [/^(.+) Using the tempo instead \((\d+ BPM|tempo unknown)\)\.$/, (a, b) => `${tr(a)} Helyette a tempót követi (${b === 'tempo unknown' ? 'ismeretlen tempó' : b}).`],
   [/^Saved to (.+)$/, a => `Mentve ide: ${a}`],
   [/^Could not save: (.+)$/, a => `Nem sikerült menteni: ${a}`],
   [/^Backup code copied \(([\d.]+) KB\)\. Paste it somewhere safe, for example a note or an email to yourself\.$/, a => `Mentéskód kimásolva (${a} KB). Tedd biztonságos helyre, például egy jegyzetbe vagy egy magadnak küldött e-mailbe.`],
@@ -4425,7 +4445,7 @@ $('#set').addEventListener('click', () => {
   su.addEventListener('click', e => { const b = e.target.closest('[data-lang]'); if(!b) return; setLang(b.dataset.lang); langPaint(); });
   window.openSetup = () => {
     S = { secs: cfg.secs, fade: cfg.fade, showExif: cfg.showExif !== false, live: cfg.live, anim: cfg.anim !== false, dynViews: cfg.dynViews !== false, autoMusic: cfg.autoMusic !== false, keepPhotos: cfg.keepPhotos !== false, dimMode: cfg.setup ? (cfg.dimMode || 'off') : 'sun', nightMode: cfg.nightMode || 'off', textSize: cfg.textSize === undefined ? 1 : cfg.textSize, contrast: !!cfg.contrast, nameDays: cfg.nameDays !== false, pinOn: !!cfg.pinHash,
-      perf: cfg.perf || 'auto', deviceType: cfg.deviceType || '', themeMatch: !!cfg.themeMatch,
+      perf: cfg.perf || 'auto', deviceType: cfg.deviceType || '', themeMatch: !!cfg.themeMatch, beatMode: cfg.beatMode || (cfg.beat === false ? 'off' : 'tempo'),
       ...(cfg.tempU ? { tempU: cfg.tempU, windU: cfg.windU || 'kmh', hour12: cfg.hour12 ? 1 : 0, _uTouched: true } : cfg.setup ? { tempU: 'c', windU: 'kmh', hour12: 0, _uTouched: true } : (window.unitDefaults ? unitDefaults(CITY.cc) : {})), musicSrc: cfg.musicSrc || (cfg.key ? 'lastfm' : cfg.setup ? 'lastfm' : 'lastfm'), beat: cfg.beat !== false, trans: cfg.trans || 'fade', tilePotd: cfg.tilePotd || 'photos', seasonal: cfg.seasonal !== false, edgeSwipe: cfg.edgeSwipe !== false, wxWarn: cfg.wxWarn !== false };
     cityPicked = !!cfg.city; whereUpd(); $('#su-cityhint').hidden = true;
     /* the device asks for less motion: start with a calm interface */
@@ -5126,7 +5146,8 @@ function dimTarget(){
 }
 function dimTick(){
   let v = dimTarget();
-  if(Date.now() < boostUntil) v *= .2;
+  /* a tap brightens for 5 s; the darker it is, the smaller the step, so it never dazzles at night */
+  if(Date.now() < boostUntil){ const b = 1 - v, nb = Math.min(1, b * 2.5 + .1); v = Math.min(v, 1 - nb); }
   if(window.nightDark && nightDark()) v = Math.max(v, .99);
   if(!$('#ring').hidden) v = 0;
   curDim = v;
@@ -5140,9 +5161,9 @@ function dimTick(){
 }
 window.dimTick = dimTick;
 setInterval(dimTick, 20000);
-/* tap the dimmed screen: full brightness for a minute (works in the app too, where no dark layer is used) */
+/* tap the dimmed screen: brighter for 5 seconds (works in the app too, where no dark layer is used); every tap restarts the 5 seconds */
 addEventListener('pointerdown', () => {
-  if(curDim > .05 && Date.now() >= boostUntil){ boostUntil = Date.now() + 60000; dimTick(); clearTimeout(boostT); boostT = setTimeout(dimTick, 60500); }
+  if(curDim > .05 || Date.now() < boostUntil){ boostUntil = Date.now() + 5000; dimTick(); clearTimeout(boostT); boostT = setTimeout(dimTick, 5100); }
 }, true);
 /* while dragging a strength slider in Settings, show the result for a few seconds */
 function previewDim(level){ previewLvl = Math.min(.95, Math.max(0, level)); previewUntil = Date.now() + 3500; dimTick(); clearTimeout(previewDim._t); previewDim._t = setTimeout(dimTick, 3600); }
@@ -5850,6 +5871,7 @@ const mmss = ms => { const s = Math.max(0, Math.round(ms / 1000)), h = s / 3600 
 const toast = m => { const t = $('#toast'); if(!t) return; t.textContent = m; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 3200); };
 if(cfg.musicSrc === undefined) cfg.musicSrc = 'lastfm';
 if(cfg.beat === undefined) cfg.beat = true;
+if(cfg.beatMode === undefined) cfg.beatMode = cfg.beat === false ? 'off' : 'tempo';
 
 /* ---------------------------------------------------------------- now playing controls markup */
 $('#balb').insertAdjacentHTML('afterend',
@@ -6060,17 +6082,114 @@ async function lookupBpm(artist, title){
   jset('pf-bpm', bpmCache);
   return bpm;
 }
-function applyBeat(){
-  const bg = $('#bgart'), on = cfg.beat !== false && !calm() && isMusicPlaying && view === 'music' && curBpm > 0 && !isCovered();
-  bg.classList.toggle('beat', on);
-  if(curBpm) bg.style.setProperty('--bt', (60 / curBpm).toFixed(3) + 's');
-  setText($('#bbpm'), cfg.debug ? (curBpm ? Math.round(curBpm) + ' BPM' : curKey ? 'BPM unknown' : '') : '');
+/* ---------------- v46: the Now Playing colours swirl to the beat.
+   Where the beats fall comes from the song's tempo (Deezer), the song position (Spotify) or the microphone. */
+const beatMode = () => ['off', 'tempo', 'spotify', 'mic'].includes(cfg.beatMode) ? cfg.beatMode : 'tempo';
+const BT = { t0: Date.now(), rot: 0, kick: 0, n: 0, raf: 0, lastF: 0, bpm: 0, src: 'tempo' };
+const MIC = { st: null, ac: null, an: null, node: null, buf: null, prev: null, hist: [], onsets: [], lastOn: 0, heard: 0, iv: 0, err: '', failAt: 0, busy: false };
+const bpmNow = () => curBpm || BT.bpm;
+/* which clock the beats follow right now */
+function beatSource(){
+  const m = beatMode();
+  if(m === 'mic' && MIC.st && Date.now() - MIC.heard < 6000) return 'mic';
+  if((m === 'spotify' || m === 'mic') && cfg.musicSrc === 'spotify' && SP.prog && SP.prog.playing) return 'spotify';
+  return 'tempo';
 }
+function beatFrame(now){
+  BT.raf = requestAnimationFrame(beatFrame);
+  if(now - BT.lastF < (LITE ? 48 : 30)) return;
+  const dt = BT.lastF ? Math.min(120, now - BT.lastF) : 30; BT.lastF = now;
+  const bpm = bpmNow(), t = Date.now(), bg = $('#bgart');
+  if(bpm > 0){
+    const per = 60000 / bpm;
+    if(BT.src === 'spotify' && SP.prog) BT.t0 = SP.prog.at - SP.prog.ms;   /* the beat grid starts with the song */
+    const n = Math.floor((t - BT.t0) / per);
+    if(n !== BT.n){ BT.n = n; BT.kick = 1; }
+  }
+  BT.kick *= Math.exp(-dt / 170);
+  /* turns a few degrees per beat and surges on each beat; slow and steady when the tempo is unknown */
+  const base = bpm > 0 ? bpm / 60 * 4 : 1.5;
+  BT.rot = (BT.rot + dt / 1000 * base * (1 + 2.6 * BT.kick)) % 3600;
+  bg.style.setProperty('--sw', BT.rot.toFixed(2) + 'deg');
+  bg.style.setProperty('--kick', BT.kick.toFixed(3));
+}
+/* ---- microphone: finds the beats in the bass of the music playing in the room. Nothing is recorded or sent. */
+function micTick(){
+  const an = MIC.an; if(!an || !MIC.st) return;
+  an.getByteFrequencyData(MIC.buf);
+  const hz = MIC.ac.sampleRate / an.fftSize, lo = Math.max(1, Math.round(40 / hz)), hi = Math.max(lo + 1, Math.round(180 / hz));
+  let flux = 0, lvl = 0;
+  for(let i = lo; i <= hi; i++){ const v = MIC.buf[i], d = v - MIC.prev[i]; lvl += v; if(d > 0) flux += d; }
+  MIC.prev.set(MIC.buf); lvl /= hi - lo + 1;
+  const h = MIC.hist; h.push(flux); if(h.length > 50) h.shift();
+  const mean = h.reduce((a, b) => a + b, 0) / h.length, sd = Math.sqrt(h.reduce((a, b) => a + (b - mean) * (b - mean), 0) / h.length);
+  const t = Date.now(), per = bpmNow() ? 60000 / bpmNow() : 500;
+  if(h.length > 20 && lvl > 35 && flux > 6 && flux > mean + 1.5 * sd && t - MIC.lastOn > Math.max(240, per * .55)){
+    MIC.lastOn = t; MIC.heard = t;
+    const o = MIC.onsets; o.push(t); if(o.length > 24) o.shift();
+    /* no tempo from Deezer: work it out from the gaps between the beats heard */
+    if(!curBpm && o.length >= 6){
+      const gaps = o.slice(1).map((x, i) => x - o[i]).filter(g => g >= 300 && g <= 1000).sort((a, b) => a - b);
+      if(gaps.length >= 4){ let b = 60000 / gaps[gaps.length >> 1]; while(b > 140) b /= 2; while(b < 70) b *= 2; BT.bpm = Math.round(b); }
+    }
+    /* pull the beat grid towards what was heard */
+    const q = bpmNow() ? 60000 / bpmNow() : 0;
+    if(q){ const k = Math.round((t - BT.t0) / q), err = t - (BT.t0 + k * q); BT.t0 += err * .4; }
+  }
+}
+async function micStart(){
+  if(MIC.st || MIC.busy) return; MIC.busy = true;
+  try {
+    MIC.st = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false } });
+    if(!MIC.ac) MIC.ac = new (window.AudioContext || window.webkitAudioContext)();
+    if(MIC.ac.state === 'suspended') MIC.ac.resume().catch(() => {});
+    if(!MIC.an){ MIC.an = MIC.ac.createAnalyser(); MIC.an.fftSize = 1024; MIC.an.smoothingTimeConstant = 0; MIC.buf = new Uint8Array(MIC.an.frequencyBinCount); MIC.prev = new Uint8Array(MIC.an.frequencyBinCount); }
+    MIC.node = MIC.ac.createMediaStreamSource(MIC.st); MIC.node.connect(MIC.an);
+    MIC.err = ''; MIC.hist = []; MIC.onsets = [];
+    clearInterval(MIC.iv); MIC.iv = setInterval(micTick, 20);
+  } catch(e){
+    MIC.st = null; MIC.failAt = Date.now();
+    let old = false; if(isApp()){ try { const v = (await nat('getInfo')).version.split('.').map(Number); old = v[0] < 2 || (v[0] === 2 && v[1] < 2); } catch {} }
+    MIC.err = old ? 'The microphone needs app version 2.2.0 or newer.' : /NotAllowed|Permission|denied/i.test((e && e.name) + ' ' + (e && e.message)) ? 'Microphone access was not allowed.' : 'The microphone could not be used.';
+  }
+  MIC.busy = false;
+}
+function micStop(){
+  clearInterval(MIC.iv); MIC.iv = 0;
+  if(MIC.node){ try { MIC.node.disconnect(); } catch {} MIC.node = null; }
+  if(MIC.st){ MIC.st.getTracks().forEach(x => x.stop()); MIC.st = null; }
+}
+/* browsers start sound processing only after a tap */
+addEventListener('pointerdown', () => { if(MIC.ac && MIC.ac.state === 'suspended') MIC.ac.resume().catch(() => {}); }, true);
+/* asks for the microphone right away when it's chosen, so the question doesn't pop up later */
+window.beatMicTest = async () => { MIC.failAt = 0; await micStart(); setTimeout(() => { if(!(beatMode() === 'mic' && isMusicPlaying && view === 'music')) micStop(); }, 1500); return MIC.err; };
+window.beatStatus = () => {
+  const m = beatMode(), b = bpmNow();
+  if(m === 'off') return 'Off';
+  if(!isMusicPlaying) return 'Waiting for music';
+  const src = beatSource(), spd = b ? Math.round(b) + ' BPM' : 'tempo unknown';
+  if(m === 'mic' && MIC.err) return MIC.err + ' Using the tempo instead (' + spd + ').';
+  if(m === 'mic' && src !== 'mic') return 'Listening… no beat heard yet. Using the tempo meanwhile (' + spd + ').';
+  return { mic: 'Following the microphone', spotify: 'Following the song position on Spotify', tempo: 'Following the tempo' }[src] + ' (' + spd + ')';
+};
+function applyBeat(){
+  const bg = $('#bgart'), m = beatMode();
+  const playing = isMusicPlaying && view === 'music' && !isCovered() && !calm();
+  const on = m !== 'off' && playing;
+  /* the microphone only listens while the music screen is showing */
+  if(m === 'mic' && playing){ if(!MIC.st && !MIC.busy && Date.now() - MIC.failAt > 600000) micStart(); } else micStop();
+  BT.src = beatSource();
+  bg.classList.remove('beat'); bg.classList.toggle('swirl', on);
+  if(on && !BT.raf){ BT.lastF = 0; BT.raf = requestAnimationFrame(beatFrame); }
+  if(!on && BT.raf){ cancelAnimationFrame(BT.raf); BT.raf = 0; BT.kick = 0; bg.style.setProperty('--kick', '0'); }
+  setText($('#bbpm'), cfg.debug ? (bpmNow() ? Math.round(bpmNow()) + ' BPM · ' + BT.src : curKey ? 'BPM unknown' : '') : '');
+}
+setInterval(applyBeat, 1000);
 function trackChanged(artist, title){
   const key = (artist || '') + '|' + (title || '');
   if(key === curKey) return;
-  curKey = key; curBpm = 0; applyBeat();
-  if(cfg.beat === false || !artist || !title || /Nothing is playing|not connected|turned off|Last.fm is not configured|No tracks found/i.test(title + ' ' + artist)) return;
+  curKey = key; curBpm = 0; BT.bpm = 0; BT.t0 = Date.now(); MIC.onsets = []; applyBeat();
+  if(!artist || !title || /Nothing is playing|not connected|turned off|Last.fm is not configured|No tracks found/i.test(title + ' ' + artist)) return;
   lookupBpm(artist, title).then(b => { if(curKey === key){ curBpm = b; applyBeat(); } });
 }
 const _setBig = setBig;
@@ -6080,7 +6199,7 @@ setInterval(applyBeat, 1000);
 /* ---------------------------------------------------------------- settings */
 $('#set').addEventListener('click', () => {
   $('#musicsrc').value = cfg.musicSrc || 'lastfm'; $('#spclient').value = cfg.spClient || ''; $('#spredir').value = spRedirect();
-  $('#beatopt').checked = cfg.beat !== false; spSetUi();
+  $('#beatmode').value = beatMode(); $('#beatinfo').textContent = beatStatus(); spSetUi();
 });
 function spSetUi(){
   const src = $('#musicsrc').value;
@@ -6100,7 +6219,7 @@ $('#su-spconnect').onclick = () => {
 };
 $('#save').addEventListener('click', () => {
   const was = cfg.musicSrc + '|' + cfg.spClient;
-  cfg.musicSrc = $('#musicsrc').value; cfg.spClient = $('#spclient').value.trim(); cfg.beat = $('#beatopt').checked;
+  cfg.musicSrc = $('#musicsrc').value; cfg.spClient = $('#spclient').value.trim(); cfg.beatMode = $('#beatmode').value; cfg.beat = cfg.beatMode !== 'off'; MIC.failAt = 0;
   saveCfg(); curKey = ''; applyBeat();
   if(was !== cfg.musicSrc + '|' + cfg.spClient) pollFm();
 });
@@ -6122,7 +6241,7 @@ window.dbgMusic = () => ({ source: cfg.musicSrc, spotifyReady: spReady(), tokenE
    v38.1: debug mode – technical information on every screen
    ===================================================================== */
 (() => {
-const VERSION = 'v45' + (isApp() ? ' (app)' : '') + (window.DEMO ? ' demo' : '') + (window.FRAME_CHANNEL === 'beta' ? ' beta' : '');
+const VERSION = 'v46' + (isApp() ? ' (app)' : '') + (window.DEMO ? ' demo' : '') + (window.FRAME_CHANNEL === 'beta' ? ' beta' : '');
 const hud = document.createElement('div'); hud.id = 'dbg'; hud.hidden = true; hud.setAttribute('data-nt', '');
 document.body.appendChild(hud);
 const t0 = Date.now();
@@ -6922,6 +7041,15 @@ $('#save').addEventListener('click', () => {
   cfg.motionArt = $('#motionart').checked; try { localStorage.setItem('pf', JSON.stringify(cfg)); } catch {}
   if(!enabled()) stop(); else { curKey = ''; update({ title: $('#bti').textContent, artist: $('#bartist').textContent, album: $('#balb').textContent, art: img.hidden ? '' : img.src }); }
 });
+})();
+</script>
+<script>
+/* v46: ask for microphone access when the microphone beat mode is picked (Settings or setup) */
+(() => {
+const ask = () => { if(window.beatMicTest) beatMicTest().then(err => { const i = $('#beatinfo'); if(i && err) i.textContent = err; }); };
+$('#beatmode').addEventListener('change', e => { if(e.target.value === 'mic') ask(); });
+$('#setup').addEventListener('click', e => { if(e.target.closest('[data-k=beatMode][data-v=mic]')) ask(); });
+setInterval(() => { if($('#dlg').open && window.beatStatus) $('#beatinfo').textContent = $('#beatmode').value === 'off' ? 'Off' : beatStatus(); }, 1500);
 })();
 </script>
 </body>

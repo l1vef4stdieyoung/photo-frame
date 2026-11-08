@@ -59,7 +59,12 @@ A tile layout you return to from every screen.
   - **Spotify** adds play, pause and skip buttons and shows how much of the song is left.
 - **Large album art:** up to 1200 × 1200, using Apple's iTunes catalogue artwork when it matches.
 - **Moving album covers:** in the Android app, albums that have an animated cover on Apple Music play it in place of the picture. It only plays while Now Playing is on screen, and can be turned off in **Settings → Music**.
-- **Background:** blurred colours taken from the cover; it can also pulse to the song's tempo (BPM).
+- **Background:** blurred colours taken from the cover.
+- **Background to the beat (beta):** the colours swirl with the music and get a push on every beat. Choose where the beat comes from:
+  - **Tempo** (default): the song's speed from Deezer. It can be a little ahead of or behind the real beat.
+  - **Spotify:** also uses where you are in the song, so it lines up better (only when the music source is Spotify).
+  - **Microphone:** the tablet listens to the music playing in the room and hits the beat exactly. The sound is analysed on the device and never recorded or sent anywhere (Android app 2.2.0 or newer, or a browser).
+  - **Off.**
 - **Lyrics** from LRCLIB.
 - **Clock:** it can move out of the way while music plays.
 - **Automatic switching:** Now Playing opens when music starts, and the frame returns to the Home screen a while after it stops.
@@ -81,7 +86,7 @@ A tile layout you return to from every screen.
 - **Alarm:** every day or once, with a 9-minute snooze.
 
 ###  QOL Features
-- **Brightness Control:** You can set the app to automatically lower either your devices brightness in the android app or the htmls brightness according to your own schedule, sunset and sunrise, your devices camera or light sensor. you can also set how much the brightness is turned up or down.
+- **Brightness Control:** You can set the app to automatically lower either your devices brightness in the android app or the htmls brightness according to your own schedule, sunset and sunrise, your devices camera or light sensor. you can also set how much the brightness is turned up or down. Tapping the screen brightens it for 5 seconds; the darker it is, the smaller the step, so it doesn't blind you at night (beta).
 - **Night screen:** between the hours you choose, the frame shows the red night clock or turns the screen black (with the lowest backlight in the app). A tap shows the normal screen for a minute; alarms still ring. In the morning it goes back Home.
 - **Away mode:** a black screen with a slowly drifting clock, to protect the screen from burn-in.
 - **Seasonal touches:** holidays, name days, and gentle snow on the screen from December to early January (northern hemisphere only).
@@ -124,7 +129,7 @@ A guided setup appears the first time you open it. A list on the left shows the 
 3. **Region & units:** shows what your country gets (holidays, name days, official warnings) and lets you choose °C/°F, the wind unit and the clock format. These are suggested from your country.
 4. **Photos:** choose your photos, the time per photo and the transition, and whether to keep them saved on the device.
 5. **Music:** Last.fm, Spotify, or no music.
-6. **Look:** Home background (shown behind the setup as soon as you pick it) and matching colours, Now Playing background and beat pulse, photo transition style, what the Photos tile shows.
+6. **Look:** Home background (shown behind the setup as soon as you pick it) and matching colours, Now Playing background and what it follows to the beat (tempo, Spotify, microphone or off), photo transition style, what the Photos tile shows.
 7. **Night & comfort:** screen brightness, the night screen (red clock or black) and its hours, text size and high contrast.
 8. **Extras & lock:** sky-event jumps, edge swiping, opening Now Playing automatically, and an optional PIN for Settings.
 
@@ -144,7 +149,7 @@ Everything can be changed later in **Settings**.
 | Swipe left / right on Weather | Next / previous weather tab |
 | Swipe from the *screen edge* | Switch between Photos → Now Playing → Weather → Clock |
 | Press and hold a photo | Favourite it, or hide it |
-| Tap the dimmed screen | Brightens it for a minute |
+| Tap the dimmed screen | Brightens it for 5 seconds (only a little at night) |
 
 ### Keyboard (handy on a PC)
 | Key | Action |
@@ -166,7 +171,7 @@ Settings is organised in tabs:
 
 - **General:** language, performance mode, animations, screen brightness, night screen, text size and contrast, edge swiping.
 - **Photos:** time per photo, transitions, portrait pairs, EXIF, saved photos (with "Remove saved photos" and "Show hidden photos again"), picture of the day.
-- **Music:** source (Last.fm or Spotify), Now Playing behaviour, background liveliness, beat pulse, clock position.
+- **Music:** source (Last.fm or Spotify), Now Playing behaviour, background liveliness, background to the beat (tempo, Spotify, microphone or off), clock position.
 - **Weather:** location, provider and API key, sky timelapse, automatic sky-event views, warnings.
 - **Region:** units (°C/°F, wind, 12/24-hour clock) and what your country gets: holidays, name days and official warnings.
 - **Home & calendar:** Home background (previewed live; *Cancel* puts the old one back), colour theme, calendar link, seasonal touches.
@@ -225,6 +230,7 @@ The app is a lightweight shell around the same frame. It loads the published pag
 - **Update check:** when a new app version exists, the frame offers to download it.
 - **Saving backups** to the Downloads folder, and following the tablet's own text size (app 2.0.0 and newer).
 - **Moving album covers** start on their own on every Android version (app 2.1.0 and newer).
+- **Microphone** for the background to the beat (app 2.2.0, beta). Android asks for permission the first time you choose it.
 
 ### Installing
 1. On the tablet, download **[photo-frame.apk](https://github.com/l1vef4stdieyoung/photo-frame/releases/latest/download/photo-frame.apk)** from the latest release.
@@ -248,6 +254,7 @@ Use **Settings → Advanced → Report a problem**. It prepares a GitHub issue w
 
 - **No accounts, no analytics, no tracking.** There's no server of our own: the frame is a static page.
 - **Everything stays on your device:** settings, API keys, saved photos, favourites and hidden photos are stored only in the device's browser or app storage.
+- **Microphone (only if you choose it):** used only while Now Playing is showing, to find the beat. The sound is analysed on the device, never recorded, stored or sent anywhere.
 - **Your photos are never uploaded anywhere.** They're read and resized on the device.
 - **Data goes straight to the services you use.** The frame talks directly to the services you enable, and only sends them what they need (your city's coordinates for the weather; your Last.fm username and key; Spotify login tokens; the song's artist and title for artwork, lyrics and tempo).
 
@@ -331,7 +338,7 @@ capacitor.config.json app id, hosted address, user-agent tag
 ## Known limitations
 
 - **Android folder picking:** Android's in-app file picker can't choose a whole folder, so select your photos as a batch. They're then kept on the device.
-- **Song tempo:** this comes from Deezer, which doesn't have it for every song. Those songs simply don't pulse. The tempo is kept in a calm 70–140 BPM range, so it may show half or double the real value.
+- **Song tempo:** this comes from Deezer, which doesn't have it for every song. Those songs swirl slowly without a beat (unless the microphone hears one). The tempo is kept in a calm 70–140 BPM range, so it may show half or double the real value.
 - **Official warnings:** MeteoAlarm (Europe) only works in the Android app, because it blocks web pages. Outside Hungary the frame matches your area by place name, which doesn't always succeed; then only forecast-based warnings are shown. The US alerts work everywhere.
 - **Spotify controls** need Spotify Premium.
 - **Moving album covers** only work in the Android app, because Apple's album pages refuse requests from other websites. There's no official free way to get them: the frame reads the public Apple Music album page, so it may stop working if Apple changes that page. Each moving cover uses a few MB of data.

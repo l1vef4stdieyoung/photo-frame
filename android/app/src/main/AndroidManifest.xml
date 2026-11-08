@@ -61,6 +61,9 @@
     <uses-permission android:name="android.permission.VIBRATE" />
     <!-- automatic brightness can measure the room light with the front camera (pictures never leave the tablet) -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- the background can follow the beat of music playing in the room; sound is analysed on the device only -->
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
     <uses-feature android:name="android.hardware.camera" android:required="false" />
     <uses-feature android:name="android.hardware.camera.front" android:required="false" />
     <uses-feature android:name="android.hardware.sensor.light" android:required="false" />
