@@ -41,7 +41,8 @@ A tile layout you return to from every screen.
 - **Clock tile:** Here you can enter the clock faces that are available in this app.
 - **Calendar tile (optional):** today's and tomorrow's events; tap it for a two-week agenda.
 - **Greeting line:** the date, plus holidays and Hungarian name days.
-- **Backgrounds:** animated, one of 8 built-in gradients, or your own picture.
+- **Backgrounds:** animated, one of 8 built-in gradients, or your own picture. The background you pick is shown right away, in setup and in Settings.
+- **Colour theme (optional):** the whole interface (icons, buttons, highlights) takes on a colour that matches your background. With your own picture, the colour is picked from the picture.
 
 ###  Photo slideshow
 - **Your own photos:** pick a folder (or a batch of files) and it shuffles through them. You choose the time per photo, the transition length and the style: fade, slide, zoom, slow zoom (Ken Burns), or a mix.
@@ -70,10 +71,10 @@ A tile layout you return to from every screen.
   - **Rain radar:** the last 2 hours, animated over a map centred on your town.
 - **Warnings:** strong gusts, heavy rain or snow, storms, freezing rain, heat, cold and fog. In the Android app, the **official HungaroMet warnings** for your region are shown as well.
 - **Providers:** Open-Meteo (free, no key), the paid Open-Meteo API, or OpenWeatherMap.
-- **Sky events:** at golden hour, sunrise, moonrise, a full moon or during storms, the matching view opens by itself. 10 minutes after the event it goes back Home, unless you've picked another screen in the meantime.
+- **Sky events:** at golden hour, sunrise, moonrise, a full moon or during storms, the matching view opens by itself. 5 minutes after the event it goes back Home, unless you've picked another screen in the meantime.
 
 ###  Clock
-- **11 clock faces:** Minimal, Analog, Stacked, Rings, Words (natural English and Hungarian), Flip (split-flap), Binary, Daylight (a 24-hour dial with today's real daylight), Tape (a moving measuring tape of time), Dot matrix (an amber LED board) and Aura (colours that follow the time of day).
+- **12 clock faces:** Minimal, Analog, Stacked, Rings, Words (natural English and Hungarian), Flip (split-flap), Binary, Daylight (a 24-hour dial with today's real daylight), Tape (a moving measuring tape of time), Dot matrix (an amber LED board), Aura (colours that follow the time of day) and Night (red): a big, dim red clock and date on black that won't light up a dark bedroom.
 - **Timer:** with a countdown visible on every screen.
 - **Alarm:** every day or once, with a 9-minute snooze.
 
@@ -82,7 +83,7 @@ A tile layout you return to from every screen.
 - **Away mode:** a black screen with a slowly drifting clock, to protect the screen from burn-in.
 - **Seasonal touches:** holidays, Hungarian name days, and gentle snow on the screen from December to early January.
 - **Languages:** English and Hungarian, switchable at any time.
-- **Light performance mode for slow tablets:** no frosted-glass blur, lower frame rates and smaller images. It's chosen automatically on weak devices.
+- **Light performance mode for slow tablets:** no frosted-glass blur, lower frame rates and smaller images. It's chosen automatically on weak devices, based on the device detected in setup.
 
 ---
 
@@ -103,16 +104,16 @@ Pick whichever suits your device.
 
 A short guided setup appears the first time you open it:
 
-1. **Language:** English or Hungarian(Magyar). Then **performance:** Automatic, Best visuals, or Light for slower tablets.
+1. **Language:** English or Hungarian(Magyar). Then **your device:** the setup detects whether it's a tablet, phone, PC, Mac, iPad or iPhone (in the Android app also the exact model, memory and processor cores), and you can correct it. Based on that it recommends a **performance** mode: Automatic, Best visuals, or Light for slower tablets.
 2. **Weather:** search for your city or tap *Use my location*, and choose a weather provider.
 3. **Photos:** choose your photos, the time per photo and the transition, and whether to keep them saved on the device.
 4. **Music:** Last.fm, Spotify, or no music.
 5. **Personalize:**
    - Now Playing background and beat pulse.
-   - Home background.
+   - Home background (shown behind the setup as soon as you pick it).
    - Photo transition style.
    - What the Photos tile shows.
-   - Extras: night dimming, sky-event jumps, holidays, edge swiping, weather warnings.
+   - Extras: night dimming, sky-event jumps, holidays, edge swiping, weather warnings, matching the colours to the background.
 
 Everything can be changed later in **Settings**.
 
@@ -152,7 +153,7 @@ Settings is organised in tabs:
 - **Photos:** time per photo, transitions, portrait pairs, EXIF, saved photos (with "Remove saved photos" and "Show hidden photos again"), picture of the day.
 - **Music:** source (Last.fm or Spotify), Now Playing behaviour, background liveliness, beat pulse, clock position.
 - **Weather:** location, provider and API key, sky timelapse, automatic sky-event views, warnings.
-- **Home & calendar:** Home background, calendar link, seasonal touches.
+- **Home & calendar:** Home background (previewed live; *Cancel* puts the old one back), colour theme, calendar link, seasonal touches.
 - **Advanced:** a time-of-day preview for the weather sky, debug mode, running setup again, app version and updates (in the Android app), and credits.
 
 ---
@@ -177,6 +178,7 @@ Last.fm needs your player to scrobble. Spotify, and most players can do this.
 Things to know:
 - **Premium:** play, pause and skip need Spotify Premium. Showing the song and time left works without it.
 - **https only:** in a browser, Spotify only allows logins from `https://` addresses (or `http://127.0.0.1`).
+- **Switching:** the music source only changes to Spotify once the login has actually worked. If Spotify is chosen but not connected, Last.fm keeps showing your music (when it's set up).
 "
 ⚠️ ***THIS FEATURE STILL NEEDS TO BE TESTED, IT IS POSSIBLE IT DOESN'T WORK AT ALL. IF YOU NOTICE A BUG IN THIS (ALSO ANYWHERE IN THE APP) YOU SHOULD CONTACT ME, THE REPO AUTHOR*** ⚠️
 
@@ -249,7 +251,7 @@ Services that may be contacted: Open-Meteo (weather, city search), OpenWeatherMa
 - **One file:** the whole frame is a single self-contained HTML file (HTML, CSS and JavaScript, no build step), so it's easy to host anywhere and to edit.
 - **Offline:** a small **service worker** keeps a copy of the frame. It always asks the server for a newer version first, so updates arrive on the next reload, and the frame still starts without internet.
 - **Version check:** `docs/version.json` tells running frames that a new version exists (`web`) and which Android app version is current (`apk`).
-- **The Android app** is a Capacitor shell that loads the hosted page. Its native `Frame` plugin provides `setBrightness`, `httpGet` (network requests without browser restrictions), `getInfo`, `openUrl` and `requestOverlay`. A boot receiver starts it after a restart. The page detects the app (`isApp()`) and uses these features only when they're available, so the same file works everywhere.
+- **The Android app** is a Capacitor shell that loads the hosted page. Its native `Frame` plugin provides `setBrightness`, `httpGet` (network requests without browser restrictions), `getInfo` (app version and device details for setup), `openUrl`, `requestOverlay` and the light sensor (`startLight`, `getLight`, `stopLight`). A boot receiver starts it after a restart. The page detects the app (`isApp()`) and uses these features only when they're available, so the same file works everywhere.
 - **Builds:** GitHub Actions builds a signed APK whenever the app shell changes, and publishes it as `photo-frame.apk` on the latest release.
 
 ### Repository layout
