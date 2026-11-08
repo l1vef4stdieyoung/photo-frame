@@ -1,10 +1,10 @@
-**Fixed**
-- Music switching itself to Spotify when Spotify wasn't connected
-- Home screen background presets not looking like their previews
-- Going back to Home after a weather event now happens after 5 minutes
-
 **Added**
-- Device detection in setup (tablet, phone, PC, Mac, iPad or iPhone)
-- A red night clock face that won't disturb you at night
-- Live preview of the Home background in setup and Settings
-- Colour theme: the whole interface can match the background colour
+- Beta updates: try new versions before everyone else (Settings → Advanced)
+- Units and formats: °C or °F, km/h, mph or m/s, 12- or 24-hour clock
+- Holidays, name days and official weather warnings for more countries
+- Night screen: the red night clock or a black screen during the hours you choose
+- PIN lock for Settings
+- Backup and restore of your settings (saved to Downloads in the app)
+- Report a problem button that prepares a bug report for GitHub
+- Text size and high contrast options
+- Redesigned setup with all the new options

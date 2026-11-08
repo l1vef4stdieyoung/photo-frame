@@ -1,6 +1,7 @@
 package io.github.l1vef4stdieyoung.photoframe;
 
 import android.app.ActivityManager;
+import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.hardware.Sensor;
@@ -10,6 +11,8 @@ import android.hardware.SensorManager;
 import android.content.pm.PackageInfo;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.provider.Settings;
 import android.view.WindowManager;
 
@@ -20,6 +23,9 @@ import com.getcapacitor.PluginMethod;
 import com.getcapacitor.annotation.CapacitorPlugin;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
@@ -106,6 +112,8 @@ public class FramePlugin extends Plugin {
         res.put("manufacturer", maker);
         res.put("soc", Build.VERSION.SDK_INT >= 31 ? Build.SOC_MODEL : Build.HARDWARE);
         res.put("tablet", getContext().getResources().getConfiguration().smallestScreenWidthDp >= 600);
+        // the system font size, so the page can follow it ("Like the device")
+        res.put("fontScale", getContext().getResources().getConfiguration().fontScale);
         res.put("cores", Runtime.getRuntime().availableProcessors());
         try {
             ActivityManager am = (ActivityManager) getContext().getSystemService(Context.ACTIVITY_SERVICE);
@@ -125,6 +133,43 @@ public class FramePlugin extends Plugin {
             return v == null ? "" : v.toString().trim();
         } catch (Exception e) {
             return "";
+        }
+    }
+
+    /** Saves a text file (settings backup) into the Downloads folder. Resolves { path }. */
+    @PluginMethod
+    public void saveFile(PluginCall call) {
+        String name = call.getString("name", "photo-frame-backup.json");
+        String text = call.getString("text", "");
+        String mime = call.getString("mime", "application/json");
+        if (name == null || name.contains("/") || name.contains("\\")) { call.reject("Invalid file name"); return; }
+        try {
+            byte[] data = (text == null ? "" : text).getBytes(StandardCharsets.UTF_8);
+            String where;
+            if (Build.VERSION.SDK_INT >= 29) {
+                ContentValues v = new ContentValues();
+                v.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
+                v.put(MediaStore.MediaColumns.MIME_TYPE, mime);
+                v.put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_DOWNLOADS);
+                Uri uri = getContext().getContentResolver().insert(MediaStore.Downloads.EXTERNAL_CONTENT_URI, v);
+                if (uri == null) throw new Exception("Could not create the file");
+                try (OutputStream o = getContext().getContentResolver().openOutputStream(uri)) {
+                    if (o == null) throw new Exception("Could not open the file");
+                    o.write(data);
+                }
+                where = "Downloads/" + name;
+            } else {
+                File dir = getContext().getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS);
+                if (dir == null) throw new Exception("No storage available");
+                File f = new File(dir, name);
+                try (FileOutputStream o = new FileOutputStream(f)) { o.write(data); }
+                where = f.getAbsolutePath();
+            }
+            JSObject r = new JSObject();
+            r.put("path", where);
+            call.resolve(r);
+        } catch (Exception e) {
+            call.reject(e.getMessage() == null ? "Could not save the file" : e.getMessage());
         }
     }
 

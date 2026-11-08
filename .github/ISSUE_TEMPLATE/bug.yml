@@ -1,0 +1,21 @@
+name: Problem report
+description: Something doesn't work as expected. The frame's "Report a problem" button (Settings → Advanced) fills this in for you.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What did you do, and what went wrong? Screenshots help.
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: What did you expect instead?
+  - type: textarea
+    id: details
+    attributes:
+      label: Technical details
+      description: Filled in by the frame. Frame version, device, settings and recent errors. No API keys, logins or location.
+      render: text

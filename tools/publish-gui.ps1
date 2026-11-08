@@ -13,6 +13,9 @@ $Repo = Split-Path -Parent $PSScriptRoot
 $Docs = Join-Path $Repo 'docs'
 $IndexPath = Join-Path $Docs 'index.html'
 $VersionPath = Join-Path $Docs 'version.json'
+$BetaDir = Join-Path $Docs 'beta'
+$BetaIndex = Join-Path $BetaDir 'index.html'
+$BetaVersion = Join-Path $BetaDir 'version.json'
 $GradlePath = Join-Path $Repo 'android\app\build.gradle'
 $ApkFolder = Join-Path (Split-Path -Parent $Repo) 'apk'
 
@@ -112,8 +115,21 @@ function Bump-Patch([string]$v) {
     return $v
 }
 
-# Prepares docs/index.html + docs/version.json from a frame file. Returns a short summary.
-function Prepare-Frame([string]$Source, [string]$Version) {
+function Get-BetaVersion { if (Test-Path $BetaVersion) { return ((Read-Text $BetaVersion) | ConvertFrom-Json).web } return '' }
+# Writes docs/beta/ (the page, its version.json and copies of the files the page needs)
+function Write-Beta([string]$Html, [string]$Version) {
+    if (-not (Test-Path $BetaDir)) { New-Item -ItemType Directory -Path $BetaDir | Out-Null }
+    Write-Text $BetaIndex $Html
+    $j = Get-Versions
+    Write-Text $BetaVersion "{`n  `"web`": `"$Version`",`n  `"apk`": `"$($j.apk)`",`n  `"apkUrl`": `"$($j.apkUrl)`"`n}`n"
+    foreach ($f in @('sw.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png')) {
+        $src = Join-Path $Docs $f
+        if (Test-Path $src) { Copy-Item $src (Join-Path $BetaDir $f) -Force }
+    }
+}
+
+# Prepares docs/index.html + docs/version.json (or docs/beta/) from a frame file. Returns a short summary.
+function Prepare-Frame([string]$Source, [string]$Version, [bool]$Beta = $false) {
     if (-not (Test-Path $Source)) { throw "File not found: $Source" }
     if ($Version -notmatch '^\d+(\.\d+)*$') { throw "The version should look like 41.0 or 41.1" }
     $html = Read-Text $Source
@@ -125,13 +141,27 @@ function Prepare-Frame([string]$Source, [string]$Version) {
         $links = "`n<link rel=`"manifest`" href=`"manifest.webmanifest`">`n<link rel=`"icon`" href=`"icon-192.png`">`n<link rel=`"apple-touch-icon`" href=`"icon-192.png`">"
         $html = [regex]::Replace($html, '(<title>[^<]*</title>)', ('$1' + $links), 1)
     }
+    if ($Beta) {
+        Write-Beta $html $Version
+        return "docs/beta/ updated from $([IO.Path]::GetFileName($Source)), beta version $Version"
+    }
     Write-Text $IndexPath $html
     Set-VersionJson -Web $Version
     return "docs/index.html updated from $([IO.Path]::GetFileName($Source)), web version $Version"
 }
 
-function Wait-Live([string]$Version, [int]$Seconds = 150) {
+# Copies the beta frame to everyone
+function Promote-Beta {
+    if (-not (Test-Path $BetaIndex)) { throw 'There is no beta version to promote yet.' }
+    $v = Get-BetaVersion
+    Copy-Item $BetaIndex $IndexPath -Force
+    Set-VersionJson -Web $v
+    return $v
+}
+
+function Wait-Live([string]$Version, [int]$Seconds = 150, [bool]$Beta = $false) {
     $site = (Get-SiteInfo).Site
+    if ($Beta -and $site) { $site = $site + 'beta/' }
     if (-not $site) { return }
     Log "Waiting for the website to show version $Version (usually under a minute)..."
     $end = (Get-Date).AddSeconds($Seconds)
@@ -191,10 +221,18 @@ $verBox = New-Box $t1 180 60 120; $verBox.Anchor = 'Top,Left'
 $curWebLbl = New-Label $t1 '' 316 60 460
 New-Label $t1 'Description:' 14 102 | Out-Null
 $msgBox = New-Box $t1 180 102 604
-$hint = New-Label $t1 'Picks your photo-frame(vNN).html, sets both version numbers to match, keeps the app manifest lines, and publishes it. The tablet updates itself.' 14 146 770
+New-Label $t1 'Publish to:' 14 144 | Out-Null
+$chanBox = New-Object System.Windows.Forms.ComboBox; $chanBox.DropDownStyle = 'DropDownList'
+$chanBox.Location = New-Object System.Drawing.Point(180, 142); $chanBox.Size = New-Object System.Drawing.Size(420, 28)
+[void]$chanBox.Items.Add('Beta - only frames with "Get beta updates" on')
+[void]$chanBox.Items.Add('Everyone')
+$chanBox.SelectedIndex = 0; $t1.Controls.Add($chanBox)
+$hint = New-Label $t1 'Picks your photo-frame(vNN).html, sets the version numbers to match, keeps the app manifest lines, and publishes it. Try new versions on beta first, then press "Promote beta to everyone".' 14 182 770
 $hint.Size = New-Object System.Drawing.Size(770, 44); $hint.ForeColor = [System.Drawing.Color]::DimGray
-$pubBtn = New-Button $t1 'Publish frame update' 14 200 240 40
+$pubBtn = New-Button $t1 'Publish frame update' 14 232 240 40
 $pubBtn.Font = New-Object System.Drawing.Font('Segoe UI', 10, [System.Drawing.FontStyle]::Bold)
+$promBtn = New-Button $t1 'Promote beta to everyone' 270 232 240 40
+$betaLbl = New-Label $t1 '' 526 242 260
 
 $browse.Add_Click({
     $dlg = New-Object System.Windows.Forms.OpenFileDialog
@@ -210,15 +248,31 @@ $pubBtn.Add_Click({
     try {
         if (-not $fileBox.Text) { throw 'Choose the new frame file first (Browse...).' }
         $v = $verBox.Text.Trim()
-        $cur = (Get-Versions).web
+        $beta = $chanBox.SelectedIndex -eq 0
+        $cur = if ($beta) { Get-BetaVersion } else { (Get-Versions).web }
         if ($v -eq $cur) {
             $a = [System.Windows.Forms.MessageBox]::Show("The website already has web version $cur.`nPublish anyway with the same number? (The tablet will then only pick it up at its nightly reload.)", 'photo-frame publisher', 'YesNo', 'Question')
             if ($a -ne 'Yes') { return }
         }
         Busy $true
-        Log (Prepare-Frame $fileBox.Text $v)
+        Log (Prepare-Frame $fileBox.Text $v $beta)
         $msg = if ($msgBox.Text.Trim()) { $msgBox.Text.Trim() } else { "Frame $v" }
-        if (Commit-And-Push @('docs/index.html', 'docs/version.json') $msg) { Wait-Live $v }
+        if ($beta) { $msg = "$msg (beta)" }
+        $paths = if ($beta) { @('docs/beta') } else { @('docs/index.html', 'docs/version.json') }
+        if (Commit-And-Push $paths $msg) { Wait-Live $v 150 $beta }
+        Refresh-All
+    } catch { Fail $_ } finally { Busy $false }
+})
+$promBtn.Add_Click({
+    try {
+        $bv = Get-BetaVersion
+        if (-not $bv) { throw 'There is no beta version to promote yet.' }
+        $a = [System.Windows.Forms.MessageBox]::Show("Publish beta version $bv to everyone?", 'photo-frame publisher', 'YesNo', 'Question')
+        if ($a -ne 'Yes') { return }
+        Busy $true
+        $v = Promote-Beta
+        Log "Beta version $v copied to docs/index.html"
+        if (Commit-And-Push @('docs/index.html', 'docs/version.json') "Frame $v for everyone") { Wait-Live $v }
         Refresh-All
     } catch { Fail $_ } finally { Busy $false }
 })
@@ -340,6 +394,8 @@ $pull.Add_Click({ try { Busy $true; Invoke-Git @('pull', '--ff-only') | Out-Null
 function Refresh-All {
     $v = Get-Versions
     $curWebLbl.Text = "(website currently: $($v.web))"
+    $bv = Get-BetaVersion
+    $betaLbl.Text = if ($bv) { "Beta currently: $bv" } else { 'No beta version yet' }
     $a = Get-AppVersion
     $curApp.Text = "Current app version: $a   (version.json says $($v.apk))"
     if (-not $appVer.Text) { $appVer.Text = Bump-Patch $a }
