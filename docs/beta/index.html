@@ -6845,7 +6845,7 @@ async function lookup(artist, album, title){
       const page = (await appHttp(hit.collectionViewUrl.split('?')[0])).text || '', i = page.indexOf('motionDetailSquare');
       const m3u8 = i >= 0 ? (page.slice(i, i + 20000).match(/https:\/\/mvod\.itunes\.apple\.com\/[^"\\]+?\.m3u8/) || [])[0] : '';
       if(m3u8){
-        const master = (await appHttp(m3u8)).text || '', lines = master.split(/\r?\n/), want = Math.min(1080, Math.max(360, Math.round((img.offsetWidth || 420) * (devicePixelRatio || 1) * (window.LITE ? .8 : 1.1))));
+        const master = (await appHttp(m3u8)).text || '', lines = master.split(/\r?\n/), want = Math.min(1080, Math.max(486, Math.round((img.offsetWidth || 420) * (devicePixelRatio || 1) * 1.15)));
         const vars = [];
         lines.forEach((l, k) => { if(!/^#EXT-X-STREAM-INF/.test(l) || !/avc1/.test(l)) return; const r = /RESOLUTION=(\d+)x/.exec(l), bw = /[^-]BANDWIDTH=(\d+)/.exec(l); vars.push({ w: r ? +r[1] : 0, bw: bw ? +bw[1] : 0, url: new URL(lines[k + 1].trim(), m3u8).href }); });
         vars.sort((a, b) => a.w - b.w || a.bw - b.bw);
@@ -6866,7 +6866,7 @@ async function lookup(artist, album, title){
 function place(){
   if(!v.src) return;
   const ok = !img.hidden && img.offsetWidth > 0;
-  if(!ok){ v.classList.remove('on'); return; }
+  if(!ok){ v.classList.remove('on'); img.style.opacity = ''; return; }
   v.style.left = img.offsetLeft + 'px'; v.style.top = img.offsetTop + 'px';
   v.style.width = img.offsetWidth + 'px'; v.style.height = img.offsetHeight + 'px';
   v.style.borderRadius = getComputedStyle(img).borderRadius;
@@ -6874,7 +6874,7 @@ function place(){
 if(window.ResizeObserver) new ResizeObserver(place).observe(img);
 addEventListener('resize', place);
 let curKey = '', tok = 0;
-function stop(){ curKey = ''; tok++; v.classList.remove('on'); setTimeout(() => { if(!curKey){ v.pause(); v.removeAttribute('src'); v.load(); v.hidden = true; } }, 1300); }
+function stop(){ curKey = ''; tok++; v.classList.remove('on'); img.style.opacity = ''; setTimeout(() => { if(!curKey){ v.pause(); v.removeAttribute('src'); v.load(); v.hidden = true; } }, 1300); }
 async function update(o){
   if(!enabled() || !o || !o.title || !o.artist || !o.art){ if(curKey) stop(); return; }
   const key = n(o.artist) + '|' + n(o.album || o.title);
@@ -6883,8 +6883,9 @@ async function update(o){
   const u = await lookup(o.artist, o.album || '', o.title);
   if(my !== tok || !u) return;
   v.hidden = false; v.src = u; place();
-  v.onplaying = () => { if(my === tok){ place(); v.classList.add('on'); } };
-  v.onerror = () => { if(my === tok){ v.classList.remove('on'); v.hidden = true; } };
+  /* the still cover hides once the video is fully faded in, so no edge of it shows */
+  v.onplaying = () => { if(my === tok){ place(); v.classList.add('on'); setTimeout(() => { if(my === tok && v.classList.contains('on')) img.style.opacity = '0'; }, 1300); } };
+  v.onerror = () => { if(my === tok){ v.classList.remove('on'); img.style.opacity = ''; v.hidden = true; } };
   v.play().catch(() => {});
 }
 window.motionArt = { lookup, update, stop };
