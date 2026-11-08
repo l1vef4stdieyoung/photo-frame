@@ -58,7 +58,7 @@ A tile layout you return to from every screen.
   - **Last.fm** shows whatever you are currently scrobbling on last.fm.
   - **Spotify** adds play, pause and skip buttons and shows how much of the song is left.
 - **Large album art:** up to 1200 × 1200, using Apple's iTunes catalogue artwork when it matches.
-- **Moving album covers (beta):** in the Android app, albums that have an animated cover on Apple Music play it in place of the picture. It only plays while Now Playing is on screen, and can be turned off in **Settings → Music**.
+- **Moving album covers:** in the Android app, albums that have an animated cover on Apple Music play it in place of the picture. It only plays while Now Playing is on screen, and can be turned off in **Settings → Music**.
 - **Background:** blurred colours taken from the cover; it can also pulse to the song's tempo (BPM).
 - **Lyrics** from LRCLIB.
 - **Clock:** it can move out of the way while music plays.
@@ -108,9 +108,9 @@ Pick whichever suits your device.
 
 
 ### The demo
-The demo link opens the frame ready to go, without setup: sample photos with their camera details, a made-up song playing with artwork and lyrics, a demo calendar, and live weather for Budapest. Look around, open Settings and change anything. Nothing is saved, and your own settings and photos (if you already use the frame in this browser) aren't touched. *Exit demo* goes back to the normal frame.
+The demo link opens the frame ready to go, without setup: sample photos with their camera details, music playing, a demo calendar, and live weather for Budapest. It starts with *Pacify Her* by Melanie Martinez to show off a moving album cover (this one works in any browser, because the demo already knows where it is), then plays a few made-up songs with their own covers and lyrics. Look around, open Settings and change anything. Nothing is saved, and your own settings and photos (if you already use the frame in this browser) aren't touched. *Exit demo* goes back to the normal frame.
 
-The demo photos are public-domain (CC0) pictures from Wikimedia Commons; the song, artist, lyrics and covers were made up for the demo. Details are in [docs/demo/CREDITS.md](docs/demo/CREDITS.md).
+The demo photos are public-domain (CC0) pictures from Wikimedia Commons. *Pacify Her*'s cover and moving cover are loaded from Apple Music, as in normal use; the demo doesn't show its lyrics. The other songs, their artist, lyrics and covers were made up for the demo. Details are in [docs/demo/CREDITS.md](docs/demo/CREDITS.md).
 ---
 
 ## First-run setup
@@ -224,7 +224,7 @@ The app is a lightweight shell around the same frame. It loads the published pag
 - **In-app Spotify login** through `photoframe://spotify`.
 - **Update check:** when a new app version exists, the frame offers to download it.
 - **Saving backups** to the Downloads folder, and following the tablet's own text size (app 2.0.0 and newer).
-- **Moving album covers** start on their own on every Android version (app 2.1.0, beta).
+- **Moving album covers** start on their own on every Android version (app 2.1.0 and newer).
 
 ### Installing
 1. On the tablet, download **[photo-frame.apk](https://github.com/l1vef4stdieyoung/photo-frame/releases/latest/download/photo-frame.apk)** from the latest release.

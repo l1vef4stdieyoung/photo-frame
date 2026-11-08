@@ -17,7 +17,9 @@ All photos are from Wikimedia Commons and are released under **CC0** (public dom
 | photos/08.jpg | [Cap Hmem Crique](https://commons.wikimedia.org/wiki/File:Cap_Hmem_Crique.jpg) | Smailtn |
 
 ## Music
-The songs, the artist (Lumen Bay), the lyrics and the album covers in `art/` were made up for this demo. Any match with a real artist is a coincidence.
+The demo starts with *Pacify Her* by Melanie Martinez (album *Cry Baby*) to show the moving album cover. Its cover picture and moving cover are not stored here: they are loaded from Apple Music, the same way the frame does for any song. Its lyrics are not shown.
+
+The other songs, the artist (Lumen Bay), their lyrics and the album covers in `art/` were made up for this demo. Any match with a real artist is a coincidence.
 
 ## Calendar
 `demo.ics` contains made-up repeating events.

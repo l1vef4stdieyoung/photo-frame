@@ -27,11 +27,19 @@
   try { Object.defineProperty(window, 'localStorage', { configurable: true, get: () => store }); } catch {}
   /* the made-up songs; one "plays" for a little over three minutes, then the next */
   const SONGS = [
+    /* a real song, to show off the moving album cover (cover and moving cover come from Apple Music, as in normal use) */
+    { name: 'Pacify Her', artist: 'Melanie Martinez', album: 'Cry Baby', dur: 221, real: true,
+      art: 'https://is1-ssl.mzstatic.com/image/thumb/Music124/v4/fb/fa/fd/fbfafd01-9728-1823-2301-4fcf6f4c0b59/075679924735.jpg/600x600bb.jpg',
+      lyrics: 'In normal use, lyrics for real songs come from LRCLIB.\nThe demo only shows lyrics for its made-up songs.' },
     { name: 'Slow Morning', album: 'Window Light', art: D + 'art/1.jpg', lyrics: 'Coffee steam against the glass\nWatching all the buses pass\nNothing on the list today\nLet the hours drift away\n\nSlow morning, stay a while\nSunlight in a lazy pile\nNowhere that I need to be\nSlow morning, you and me\n\nPages turning on their own\nRadio in a quiet tone\nEvery minute feels like gold\nSlow morning, let it hold' },
     { name: 'Night Train Postcards', album: 'Night Train Postcards', art: D + 'art/2.jpg', lyrics: 'Windows full of passing towns\nLittle lights in sleepy rows\nI write you from the dining car\nTelling you how far we are\n\nPostcards from the night train\nStamped with stars and window rain\nEvery station that we pass\nI can see you in the glass\n\nMorning comes in shades of blue\nEvery mile is back to you' },
     { name: 'Tidal Hours', album: 'Tidal Hours', art: D + 'art/3.jpg', inst: true }
   ];
-  window.demoSong = () => SONGS[Math.floor(Date.now() / 200000) % SONGS.length];
+  /* the demo starts with the first song and then plays them in turn */
+  const T0 = Date.now(), total = SONGS.reduce((a, x) => a + (x.dur || 200), 0);
+  window.demoSong = () => { let t = ((Date.now() - T0) / 1000) % total; for(const x of SONGS){ t -= x.dur || 200; if(t < 0) return x; } return SONGS[0]; };
+  /* moving covers can't be looked up from a web page, so the demo knows where its one is */
+  window.DEMO_MOTION = { 'melanie martinez|cry baby': 'https://mvod.itunes.apple.com/itunes-assets/HLSMusic116/v4/c9/e3/4b/c9e34bd8-45b2-3986-0efb-67a066ff64a0/P541297727_default.m3u8' };
   const json = o => Promise.resolve(new Response(JSON.stringify(o), { status: 200, headers: { 'Content-Type': 'application/json' } }));
   const f0 = window.fetch.bind(window);
   window.fetch = (u, o) => {
@@ -39,12 +47,13 @@
     if(/ws\.audioscrobbler\.com/.test(url)){
       if(!/user\.getrecenttracks/.test(url)) return json({});
       const t = demoSong(), img = [t.art, t.art, t.art, t.art].map(x => ({ '#text': x }));
-      return json({ recenttracks: { track: [{ name: t.name, artist: { '#text': 'Lumen Bay' }, album: { '#text': t.album }, image: img, '@attr': { nowplaying: 'true' } }] } });
+      return json({ recenttracks: { track: [{ name: t.name, artist: { '#text': t.artist || 'Lumen Bay' }, album: { '#text': t.album }, image: img, '@attr': { nowplaying: 'true' } }] } });
     }
-    if(/itunes\.apple\.com/.test(url)) return json({ resultCount: 0, results: [] });
+    /* the made-up songs must never pick up a real cover */
+    if(/itunes\.apple\.com/.test(url) && /lumen/i.test(decodeURIComponent(url))) return json({ resultCount: 0, results: [] });
     if(/lrclib\.net/.test(url)){
       const q = decodeURIComponent(url), t = SONGS.find(x => q.includes(x.name));
-      return json(t ? [{ trackName: t.name, artistName: 'Lumen Bay', albumName: t.album, plainLyrics: t.lyrics || '', instrumental: !!t.inst }] : []);
+      return json(t ? [{ trackName: t.name, artistName: t.artist || 'Lumen Bay', albumName: t.album, plainLyrics: t.lyrics || '', instrumental: !!t.inst }] : []);
     }
     return f0(u, o);
   };
@@ -1796,7 +1805,7 @@ body.themed .su-list li.done .n svg{stroke:var(--accent-ink)}
 /* ===== v40: Android app bridge =====
    Inside the photo-frame Android app, Capacitor provides window.Capacitor and the native "Frame" plugin.
    In a normal browser none of this exists and everything falls back to plain web behaviour. */
-window.WEB_VERSION = '45.0';
+window.WEB_VERSION = '45.1';
 window.FRAME_CHANNEL = /\/beta\/(index\.html)?$/.test(location.pathname) ? 'beta' : 'stable';
 /* the normal (stable) address of this frame, also used as the Spotify return address */
 window.STABLE_URL = location.origin + location.pathname.replace(/beta\/(index\.html)?$/, '').replace(/index\.html$/, '');
@@ -1846,7 +1855,7 @@ const HU = Object.assign(Object.create(null), {
   "Moving album covers (from Apple Music)": "Mozgó albumborítók (az Apple Musicról)",
   "When an album has an animated cover on Apple Music, it plays in place of the picture. Android app only (Apple's website can't be read by web pages); uses a few MB of data per album.": "Ha egy albumnak mozgó borítója van az Apple Musicon, a kép helyett az jelenik meg. Csak az Android-alkalmazásban (az Apple weboldalát a weboldalak nem olvashatják); albumonként néhány MB adatforgalommal jár.",
   /* v44 demo */
-  "Demo": "Demó", "Sample photos, a made-up song and a demo calendar. Nothing is saved.": "Mintafotók, egy kitalált dal és egy bemutató naptár. Semmi sem mentődik.", "Exit demo": "Kilépés a demóból", "Lyrics written for this demo": "A dalszöveget a demóhoz írtuk",
+  "Demo": "Demó", "Sample photos, music and a demo calendar. Nothing is saved.": "Mintafotók, zene és egy bemutató naptár. Semmi sem mentődik.", "Exit demo": "Kilépés a demóból", "Demo: only the made-up songs have lyrics": "Demó: csak a kitalált dalokhoz van dalszöveg", "In normal use, lyrics for real songs come from LRCLIB.\nThe demo only shows lyrics for its made-up songs.": "Normál használatban a valódi dalok szövegét az LRCLIB adja.\nA demó csak a kitalált dalokhoz mutat dalszöveget.",
   "Morning walk": "Reggeli séta", "Evening reading": "Esti olvasás", "Team meeting": "Csapatmegbeszélés", "Piano lesson": "Zongoraóra", "Grocery shopping": "Bevásárlás", "Yoga": "Jóga", "Movie night": "Filmest", "Farmers' market": "Termelői piac", "Family lunch": "Családi ebéd",
   /* v43 setup */
   "Photo frame setup": "Képkeret beállítása", "Everything can be changed later in Settings.": "Később mindent módosíthatsz a Beállításokban.",
@@ -6809,11 +6818,11 @@ const D = STABLE_URL + 'demo/';
   } catch {}
 })();
 const bar = document.createElement('div'); bar.id = 'demobar';
-bar.innerHTML = '<b>Demo</b><span>Sample photos, a made-up song and a demo calendar. Nothing is saved.</span><a></a>';
+bar.innerHTML = '<b>Demo</b><span>Sample photos, music and a demo calendar. Nothing is saved.</span><a></a>';
 const a = bar.querySelector('a'); a.textContent = 'Exit demo'; a.href = STABLE_URL;
 document.body.appendChild(bar);
 /* the demo's lyrics are made up, not from LRCLIB */
-const credit = [...document.querySelectorAll('#lyrics *')].find(e => !e.children.length && /LRCLIB/.test(e.textContent)); if(credit) credit.textContent = 'Lyrics written for this demo';
+const credit = [...document.querySelectorAll('#lyrics *')].find(e => !e.children.length && /LRCLIB/.test(e.textContent)); if(credit) credit.textContent = 'Demo: only the made-up songs have lyrics';
 let t = 0; const wake = () => { bar.classList.remove('dim'); clearTimeout(t); t = setTimeout(() => bar.classList.add('dim'), 8000); };
 addEventListener('pointerdown', wake, true); wake();
 })();
@@ -6828,7 +6837,7 @@ addEventListener('pointerdown', wake, true); wake();
 const v = $('#bartv'), img = $('#bart');
 const jget = (k, d) => { try { const x = JSON.parse(localStorage.getItem(k)); return x == null ? d : x; } catch { return d; } };
 const jset = (k, x) => { try { localStorage.setItem(k, JSON.stringify(x)); } catch {} };
-const enabled = () => cfg.motionArt !== false && isApp() && !window.DEMO;
+const enabled = () => cfg.motionArt !== false && (window.DEMO ? !!window.DEMO_MOTION : isApp());
 const n = s => (s || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\(.*?\)|\[.*?\]/g, ' ').replace(/\s+-\s+(single|ep)$/, '').replace(/[^a-z0-9]+/g, ' ').trim();
 let cache = jget('pf-motion', {});
 /* finds the album page on Apple Music, reads its animated cover and picks a plain MP4 (H.264) of a sensible size */
@@ -6837,13 +6846,22 @@ async function lookup(artist, album, title){
   if(c && (c.u || Date.now() - c.t < 7 * 864e5)) return c.u;
   let u = '';
   try {
+    let m3u8 = '';
+    if(window.DEMO) m3u8 = (window.DEMO_MOTION || {})[key] || '';
+    else {
     const ent = album ? 'album' : 'song';
     const j = await (await fetch('https://itunes.apple.com/search?limit=10&media=music&entity=' + ent + '&term=' + encodeURIComponent(artist + ' ' + (album || title)))).json();
     const A = n(artist).split(' ')[0], B = n(album || title);
     const hit = (j.results || []).find(r => n(r.artistName).includes(A) && (album ? (n(r.collectionName).startsWith(B) || B.startsWith(n(r.collectionName))) : n(r.trackName) === B));
-    if(hit && hit.collectionViewUrl){
-      const page = (await appHttp(hit.collectionViewUrl.split('?')[0])).text || '', i = page.indexOf('motionDetailSquare');
-      const m3u8 = i >= 0 ? (page.slice(i, i + 20000).match(/https:\/\/mvod\.itunes\.apple\.com\/[^"\\]+?\.m3u8/) || [])[0] : '';
+    /* a song's link opens a page without the moving cover, so look up the album's own link */
+    let page_url = hit && hit.collectionViewUrl ? hit.collectionViewUrl.split('?')[0] : '';
+    if(hit && !album && hit.collectionId){ try { const a = await (await fetch('https://itunes.apple.com/lookup?entity=album&id=' + hit.collectionId)).json(); const r = (a.results || []).find(x => x.collectionViewUrl); if(r) page_url = r.collectionViewUrl.split('?')[0]; } catch {} }
+    if(page_url){
+      const page = (await appHttp(page_url)).text || '', i = page.indexOf('motionDetailSquare');
+      m3u8 = i >= 0 ? (page.slice(i, i + 20000).match(/https:\/\/mvod\.itunes\.apple\.com\/[^"\\]+?\.m3u8/) || [])[0] || '' : '';
+    }
+    }
+    {
       if(m3u8){
         const master = (await appHttp(m3u8)).text || '', lines = master.split(/\r?\n/), want = Math.min(1080, Math.max(486, Math.round((img.offsetWidth || 420) * (devicePixelRatio || 1) * 1.15)));
         const vars = [];
@@ -6871,7 +6889,7 @@ function place(){
   v.style.width = img.offsetWidth + 'px'; v.style.height = img.offsetHeight + 'px';
   v.style.borderRadius = getComputedStyle(img).borderRadius;
 }
-if(window.ResizeObserver) new ResizeObserver(place).observe(img);
+if(window.ResizeObserver) new ResizeObserver(() => requestAnimationFrame(place)).observe(img);
 addEventListener('resize', place);
 let curKey = '', tok = 0;
 function stop(){ curKey = ''; tok++; v.classList.remove('on'); img.style.opacity = ''; setTimeout(() => { if(!curKey){ v.pause(); v.removeAttribute('src'); v.load(); v.hidden = true; } }, 1300); }
