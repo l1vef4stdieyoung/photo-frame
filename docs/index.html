@@ -6,6 +6,18 @@
 <meta name="mobile-web-app-capable" content="yes"><meta name="apple-mobile-web-app-capable" content="yes"><meta name="theme-color" content="#0d0c0b">
 <title>Photo frame</title>
 <link rel="manifest" href="manifest.webmanifest">
+<script>
+/* v43: beta channel. Frames that opted into beta updates load /beta/, everyone else the normal page.
+   A counter stops any redirect loop; docs/404.html switches a frame back if the beta copy is missing. */
+(() => { try {
+  if(location.protocol !== 'https:') return;
+  const want = JSON.parse(localStorage.getItem('pf') || '{}').channel === 'beta', p = location.pathname, inBeta = /\/beta\/(index\.html)?$/.test(p);
+  const go = u => { const n = +(sessionStorage.getItem('pf-chan') || 0); if(n >= 3) return; sessionStorage.setItem('pf-chan', n + 1); location.replace(u + location.search + location.hash); };
+  if(want && !inBeta) go(p.replace(/index\.html$/, '').replace(/\/?$/, '/') + 'beta/');
+  else if(!want && inBeta) go(p.replace(/beta\/(index\.html)?$/, ''));
+  else sessionStorage.removeItem('pf-chan');
+} catch {} })();
+</script>
 <link rel="icon" href="icon-192.png">
 <link rel="apple-touch-icon" href="icon-192.png">
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@200;400;600&display=swap" rel="stylesheet">
@@ -1011,6 +1023,91 @@ body.themed .t-wx.live,body.themed .t-ph.has-img{border-color:var(--accent-soft)
 body.themed #hm-x .hol{color:var(--accent)}
 body.themed .wn-item.now{background:var(--accent-soft);border-color:var(--accent)}
 body.themed .ck-tools button.on .ic{color:var(--accent-ink)}
+
+/* ===== v43: accessibility ===== */
+html{font-size:calc(100% * var(--ts,1))}
+body.hc .tile,body.hc .sd-card,body.hc .chip,body.hc .lang,body.hc dialog button,body.hc .hm-foot button,body.hc .su-in,body.hc dialog input,body.hc dialog select{border-color:rgba(255,255,255,.7)!important}
+body.hc .tile,body.hc .sd-card,body.hc .hm-foot button{background-color:rgba(0,0,0,.78)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+body.hc small,body.hc .su-s p,body.hc .su-l,body.hc .tile small{opacity:1!important}
+body.hc .chip[aria-pressed=true],body.hc .lang[aria-pressed=true]{outline:3px solid #fff;outline-offset:2px}
+/* ===== v43: small dialogs (PIN, restore, report) ===== */
+.minidlg{width:min(440px,92vw);padding:26px;border-radius:26px;border:1px solid rgba(255,255,255,.14);background:#17161a;color:#fff}
+.minidlg.wide{width:min(640px,94vw)}
+.minidlg::backdrop{background:rgba(0,0,0,.6)}
+.minidlg h2{font-weight:500;font-size:1.4rem;margin-bottom:12px}
+.minidlg p{opacity:.7;margin-bottom:12px;line-height:1.45}
+.minidlg label{display:block;font-size:.85rem;opacity:.7;margin:12px 0 6px}
+.minidlg textarea,#bkcode{width:100%;font:inherit;font-size:.9rem;padding:12px 14px;border-radius:14px;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.06);color:#fff;resize:vertical;-webkit-user-select:text;user-select:text}
+#repdiag{font-family:ui-monospace,Consolas,monospace;font-size:.78rem;opacity:.8}
+.minidlg .row{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+.minidlg .row.l{justify-content:flex-start}
+.minidlg small{display:block;margin-top:8px;opacity:.75}
+.pindots{display:flex;gap:16px;justify-content:center;margin:8px 0 6px}
+.pindots b{width:16px;height:16px;border-radius:50%;border:2px solid rgba(255,255,255,.6);transition:background .15s}
+.pindots b.on{background:#fff;border-color:#fff}
+.pindots.bad{animation:pinshake .4s}
+@keyframes pinshake{20%,60%{transform:translateX(-10px)}40%,80%{transform:translateX(10px)}}
+.pinmsg{text-align:center;min-height:1.4em;font-size:.95rem}
+.pinpad{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:8px}
+.pinpad button{min-height:58px;font-size:1.5rem;font-weight:300;border-radius:18px;background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.12);color:#fff}
+.pinpad button[data-x]{font-size:1rem}
+.reginfo{display:flex;flex-direction:column;gap:6px;margin-bottom:6px}
+.reginfo b{font-size:1.05rem;font-weight:600}
+.reginfo span{opacity:.75;font-size:.92rem}
+/* ===== v43: black night screen ===== */
+#nightblk{position:fixed;inset:0;z-index:410;background:#000;opacity:0;transition:opacity 1.5s ease;pointer-events:none}
+#nightblk.on{opacity:1;pointer-events:auto}
+/* key fields show as dots unless they are being edited */
+#key:not(:focus),#su-key:not(:focus),#wxkey:not(:focus),#su-wxkey:not(:focus),#spclient:not(:focus),#su-spclient:not(:focus),#ical:not(:focus){-webkit-text-security:disc}
+
+/* ===== v43: setup with a step list ===== */
+#setup .su-wrap{width:min(1100px,100%);height:min(700px,94vh);display:grid;grid-template-columns:240px minmax(0,1fr);gap:clamp(20px,3.4vw,52px);transition:grid-template-columns .6s cubic-bezier(.2,.8,.2,1),gap .6s}
+#setup.noside .su-wrap{grid-template-columns:0 minmax(0,1fr);gap:0}
+.su-main{display:flex;flex-direction:column;min-width:0;min-height:0;max-width:760px;width:100%;justify-self:center}
+.su-side{display:flex;flex-direction:column;gap:20px;padding:12px 18px 12px 0;border-right:1px solid rgba(255,255,255,.1);min-width:0;overflow:hidden;transition:opacity .5s}
+#setup.noside .su-side{opacity:0;pointer-events:none}
+.su-brand{display:flex;align-items:center;gap:10px;font-weight:600;font-size:.95rem;white-space:nowrap}
+.su-brand .ic{width:22px;height:22px}
+.su-list{list-style:none;display:flex;flex-direction:column;gap:3px;overflow:auto;scrollbar-width:none;margin:0;padding:0}
+.su-list button{display:flex;align-items:center;gap:12px;width:100%;min-height:0;padding:9px 12px;border-radius:14px;background:none;border:1px solid transparent;color:inherit;text-align:left;font-size:.95rem;font-weight:500;opacity:.4;line-height:1.2;transition:opacity .3s,background .3s}
+.su-list li.open button{opacity:.75}
+.su-list li.on button{opacity:1;background:rgba(255,255,255,.1);border-color:rgba(255,255,255,.12)}
+.su-list .ic{width:19px;height:19px;flex:none}
+.su-list .n{position:relative;width:24px;height:24px;flex:none;border-radius:50%;display:grid;place-items:center;border:1.5px solid rgba(255,255,255,.4);font-size:.72rem;font-style:normal}
+.su-list .n i{font-style:normal}
+.su-list .n svg{position:absolute;width:15px;height:15px;fill:none;stroke:#111;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round;opacity:0}
+.su-list li.done .n{background:#fff;border-color:#fff}
+.su-list li.done .n i{opacity:0}
+.su-list li.done .n svg{opacity:1}
+.su-list .t{min-width:0}
+.su-sidefoot{margin-top:auto;opacity:.45;font-size:.8rem;line-height:1.4;white-space:normal}
+body.themed .su-list li.done .n{background:var(--accent);border-color:var(--accent)}
+body.themed .su-list li.done .n svg{stroke:var(--accent-ink)}
+#setup .su-dots{display:none}
+#setup .su-s{gap:1.8vh}
+#setup .su-s h2{font-size:clamp(2rem,5.2vw,3.8rem)}
+.su-welcome h2{font-size:clamp(2.4rem,6.5vw,4.6rem)!important}
+.su-times{display:flex;gap:14px;flex-wrap:wrap}
+.su-times[hidden]{display:none}
+.su-times label{display:flex;align-items:center;gap:10px;opacity:.85}
+.su-times .su-in{width:auto;padding:10px 14px}
+#su-pinrow .su-in{max-width:220px;letter-spacing:.4em;font-size:1.4rem;-webkit-text-security:disc}
+.su-note{font-size:.95rem!important}
+.su-reg{padding:14px 18px;border-radius:18px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12)}
+.su-sum{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px;max-width:640px}
+.su-sum div{display:flex;flex-direction:column;gap:3px;padding:12px 16px;border-radius:16px;background:rgba(255,255,255,.07)}
+.su-sum span{font-size:.75rem;opacity:.55;letter-spacing:.08em;text-transform:uppercase}
+.su-sum b{font-weight:500;font-size:1rem}
+@media (max-width:760px){
+  #setup .su-wrap,#setup.noside .su-wrap{grid-template-columns:minmax(0,1fr);gap:0}
+  .su-side{display:none}
+  #setup .su-dots{display:flex}
+}
+@media (max-height:640px){
+  #setup .su-s{gap:12px}
+  #setup .su-s h2{font-size:clamp(1.8rem,7vh,2.8rem)}
+  .su-list button{padding:7px 10px}
+}
 </style>
 </head>
 <body class="idle">
@@ -1058,6 +1155,10 @@ body.themed .ck-tools button.on .ic{color:var(--accent-ink)}
 <symbol id="i-pause" viewBox="0 0 24 24"><path d="M8 5.5v13M16 5.5v13" stroke-width="3"/></symbol>
 <symbol id="i-prev" viewBox="0 0 24 24"><path d="M18 6v12L9.5 12z" fill="currentColor"/><path d="M6.5 6v12" stroke-width="2.4"/></symbol>
 <symbol id="i-next" viewBox="0 0 24 24"><path d="M6 6v12l8.5-6z" fill="currentColor"/><path d="M17.5 6v12" stroke-width="2.4"/></symbol>
+<symbol id="i-device" viewBox="0 0 24 24"><rect x="2.5" y="5" width="19" height="14" rx="2.2"/><path d="M11 16.5h2"/></symbol>
+<symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9.5"/><path d="M2.5 12h19M12 2.5c2.6 2.8 3.8 6 3.8 9.5s-1.2 6.7-3.8 9.5c-2.6-2.8-3.8-6-3.8-9.5S9.4 5.3 12 2.5z"/></symbol>
+<symbol id="i-lock" viewBox="0 0 24 24"><rect x="4.5" y="10.5" width="15" height="10.5" rx="2.2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></symbol>
+<symbol id="i-palette" viewBox="0 0 24 24"><path d="M12 2.5a9.5 9.5 0 1 0 0 19c1.3 0 2-.9 2-1.9 0-1.3-1.1-1.6-1.1-2.8 0-1 .8-1.8 1.9-1.8h2.4a4.3 4.3 0 0 0 4.3-4.3c0-4.6-4.3-8.2-9.5-8.2z"/><circle cx="7.5" cy="11" r="1.2" fill="currentColor"/><circle cx="10.5" cy="7" r="1.2" fill="currentColor"/><circle cx="15.5" cy="7.5" r="1.2" fill="currentColor"/></symbol>
 </defs></svg>
 <div class="slide"><img class="bg" alt=""><img class="fg" alt=""><img class="fg2" alt=""></div>
 <div class="slide"><img class="bg" alt=""><img class="fg" alt=""><img class="fg2" alt=""></div>
@@ -1220,19 +1321,26 @@ body.themed .ck-tools button.on .ic{color:var(--accent-ink)}
   <div class="su-bg"><i></i><i></i><i></i></div>
   <div class="hm-bg" id="su-bgprev" hidden></div>
   <div class="su-wrap">
+    <aside class="su-side" id="su-side">
+      <div class="su-brand"><svg class="ic"><use href="#i-image"/></svg><span>Photo frame setup</span></div>
+      <ol class="su-list" id="su-list"></ol>
+      <small class="su-sidefoot">Everything can be changed later in Settings.</small>
+    </aside>
+    <div class="su-main">
     <div class="su-dots" id="su-dots"></div>
     <div class="su-stage">
-      <section class="su-s" data-nt>
-        <span class="su-l">Step 1 · Language · Nyelv</span>
+      <section class="su-s su-welcome" data-nt>
+        <span class="su-l">Welcome · Üdvözlünk</span>
         <h2>Choose your language.<br><span class="alt">Válaszd ki a nyelvet.</span></h2>
         <p>You can change this later in Settings.<br>Ezt később a Beállításokban módosíthatod.</p>
         <div class="langs">
           <button class="lang" data-lang="en" type="button"><span class="lc">EN</span><b>English</b><small>Use the interface in English</small></button>
           <button class="lang" data-lang="hu" type="button"><span class="lc">HU</span><b>Magyar</b><small>A felület magyar nyelvű lesz</small></button>
         </div>
+        <div class="chips"><button class="chip" id="su-restore" type="button"><svg class="ic"><use href="#i-folder"/></svg>Restore from a backup · Visszaállítás mentésből</button></div>
       </section>
-      <section class="su-s">
-        <span class="su-l">Step 1 · Your device</span>
+      <section class="su-s" data-title="Device" data-ic="i-device">
+        <span class="su-l">Your device</span>
         <h2>What is this device?</h2>
         <div class="devcard"><svg class="ic" id="su-devic" viewBox="0 0 24 24"></svg><div><b id="su-devname">Detecting…</b><small id="su-devinfo"></small></div></div>
         <div class="chips" id="su-devtypes"><button class="chip" data-k="deviceType" data-v="tablet">Tablet</button><button class="chip" data-k="deviceType" data-v="phone">Phone</button><button class="chip" data-k="deviceType" data-v="pc">PC</button><button class="chip" data-k="deviceType" data-v="mac">Mac</button><button class="chip" data-k="deviceType" data-v="ipad">iPad</button><button class="chip" data-k="deviceType" data-v="iphone">iPhone</button></div>
@@ -1244,9 +1352,10 @@ body.themed .ck-tools button.on .ic{color:var(--accent-ink)}
           <button class="lang" data-k="perf" data-v="lite" type="button"><b>Light</b><small>For older or slower tablets. Smaller images, fewer effects.</small></button>
         </div>
         <div class="chips"><button class="chip" data-k="anim">Animated interface</button></div>
+        <p class="su-note" id="su-motion" hidden>This device asks for reduced motion, so animations start switched off.</p>
       </section>
-      <section class="su-s" data-step="weather">
-        <span class="su-l">Step 2 · Weather</span>
+<section class="su-s" data-step="weather" data-title="Location" data-ic="i-pin">
+        <span class="su-l">Location &amp; weather</span>
         <h2>Where are you?</h2>
         <p>Search for your city. It is used for the weather, sunrise, sunset and the moon.</p>
         <input class="su-in" id="su-city" placeholder="Search for a city" autocomplete="off">
@@ -1262,8 +1371,21 @@ body.themed .ck-tools button.on .ic{color:var(--accent-ink)}
           <p class="wxhelp" id="su-wxhelp"></p>
         </div>
       </section>
-      <section class="su-s">
-        <span class="su-l">Step 3 · Photos</span>
+      <section class="su-s" data-title="Region &amp; units" data-ic="i-globe">
+        <span class="su-l">Region &amp; units</span>
+        <h2>How should things look?</h2>
+        <div class="reginfo su-reg" id="su-region"></div>
+        <span class="su-l">Temperature</span>
+        <div class="chips"><button class="chip" data-k="tempU" data-v="c">°C · Celsius</button><button class="chip" data-k="tempU" data-v="f">°F · Fahrenheit</button></div>
+        <span class="su-l">Wind speed</span>
+        <div class="chips"><button class="chip" data-k="windU" data-v="kmh">km/h</button><button class="chip" data-k="windU" data-v="mph">mph</button><button class="chip" data-k="windU" data-v="ms">m/s</button></div>
+        <span class="su-l">Clock</span>
+        <div class="chips"><button class="chip" data-k="hour12" data-v="0">24-hour · 18:30</button><button class="chip" data-k="hour12" data-v="1">12-hour · 6:30 PM</button></div>
+        <span class="su-l">On the Home screen</span>
+        <div class="chips"><button class="chip" data-k="seasonal">Holidays &amp; seasonal touches</button><button class="chip" data-k="nameDays" id="su-ndchip">Name days</button><button class="chip" data-k="wxWarn">Weather warnings</button></div>
+      </section>
+      <section class="su-s" data-title="Photos" data-ic="i-image">
+        <span class="su-l">Photos</span>
         <h2>Your photos.</h2>
         <p>Choose a folder to shuffle through. If your tablet only lets you pick files, select a batch instead.</p>
         <div class="chips"><button class="chip" id="su-pick" type="button"><svg class="ic"><use href="#i-folder"/></svg>Choose photos…</button><span id="su-count"></span></div>
@@ -1273,8 +1395,8 @@ body.themed .ck-tools button.on .ic{color:var(--accent-ink)}
         <div class="chips"><button class="chip" data-k="fade" data-v="0">None</button><button class="chip" data-k="fade" data-v="1.2">Quick</button><button class="chip" data-k="fade" data-v="2.4">Smooth</button><button class="chip" data-k="fade" data-v="4">Slow</button></div>
         <div class="chips"><button class="chip" data-k="showExif">Show photo details (EXIF)</button><button class="chip" data-k="keepPhotos">Keep photos on this tablet</button></div>
       </section>
-      <section class="su-s">
-        <span class="su-l">Step 4 · Music</span>
+      <section class="su-s" data-title="Music" data-ic="i-music">
+        <span class="su-l">Music</span>
         <h2>What’s playing?</h2>
         <p>Optional. Show the current song, its artwork and lyrics.</p>
         <div class="chips"><button class="chip" data-k="musicSrc" data-v="lastfm">Last.fm</button><button class="chip" data-k="musicSrc" data-v="spotify">Spotify</button><button class="chip" data-k="musicSrc" data-v="none">No music</button></div>
@@ -1289,32 +1411,79 @@ body.themed .ck-tools button.on .ic{color:var(--accent-ink)}
           <input class="su-in su-ro" id="su-spredir" readonly>
           <div class="wxrow"><button type="button" class="chip" id="su-spconnect">Connect Spotify</button><span class="wxres" id="su-spstatus"></span></div>
         </div>
-        <div class="chips" id="su-automusic"><button class="chip" data-k="autoMusic">Open Now Playing automatically</button></div>
+        <div class="chips" id="su-automusic"></div>
       </section>
-      <section class="su-s">
-        <span class="su-l">Step 5 · Personalize</span>
+      <section class="su-s" data-title="Look" data-ic="i-palette">
+        <span class="su-l">Look</span>
         <h2>Make it yours.</h2>
-        <span class="su-l">Now Playing background</span>
-        <div class="chips"><button class="chip" data-k="live" data-v="0">Still</button><button class="chip" data-k="live" data-v="30">Calm</button><button class="chip" data-k="live" data-v="75">Lively</button><button class="chip" data-k="beat">Pulse to the beat</button></div>
         <span class="su-l">Home screen background</span>
         <div class="bgpick" id="bgpick-su"></div>
+        <div class="chips"><button class="chip" data-k="themeMatch">Match colours to the background</button></div>
+        <span class="su-l">Now Playing background</span>
+        <div class="chips"><button class="chip" data-k="live" data-v="0">Still</button><button class="chip" data-k="live" data-v="30">Calm</button><button class="chip" data-k="live" data-v="75">Lively</button><button class="chip" data-k="beat">Pulse to the beat</button></div>
         <span class="su-l">Photo transitions</span>
         <div class="chips"><button class="chip" data-k="trans" data-v="fade">Fade</button><button class="chip" data-k="trans" data-v="slide">Slide</button><button class="chip" data-k="trans" data-v="zoom">Zoom</button><button class="chip" data-k="trans" data-v="kenburns">Slow zoom</button><button class="chip" data-k="trans" data-v="random">Mix of all</button></div>
         <span class="su-l">Home Photos tile shows</span>
         <div class="chips"><button class="chip" data-k="tilePotd" data-v="photos">My photos</button><button class="chip" data-k="tilePotd" data-v="potd">Picture of the day</button><button class="chip" data-k="tilePotd" data-v="both">Both, taking turns</button></div>
-        <span class="su-l">Extras</span>
-        <div class="chips"><button class="chip" data-k="nightDim">Dim the screen at night</button><button class="chip" data-k="dynViews">Jump to Sun &amp; Moon at golden hour</button><button class="chip" data-k="seasonal">Holidays, name days &amp; December snow</button><button class="chip" data-k="edgeSwipe">Swipe from the edge to switch screens</button><button class="chip" data-k="wxWarn">Weather warnings</button><button class="chip" data-k="themeMatch">Match colours to the background</button></div>
+      </section>
+      <section class="su-s" data-title="Night &amp; comfort" data-ic="i-moon">
+        <span class="su-l">Night &amp; comfort</span>
+        <h2>Easy on the eyes.</h2>
+        <span class="su-l">Screen brightness</span>
+        <div class="chips"><button class="chip" data-k="dimMode" data-v="off">No dimming</button><button class="chip" data-k="dimMode" data-v="sun">Dim at night</button><button class="chip apponly" data-k="dimMode" data-v="sensor">Light sensor</button><button class="chip" data-k="dimMode" data-v="camera">Front camera</button></div>
+        <span class="su-l">At night</span>
+        <div class="chips"><button class="chip" data-k="nightMode" data-v="off">Normal screen</button><button class="chip" data-k="nightMode" data-v="red">Red night clock</button><button class="chip" data-k="nightMode" data-v="black">Black screen</button></div>
+        <div class="su-times" id="su-ntimes"><label>From <input class="su-in" type="time" id="su-nfrom"></label><label>Until <input class="su-in" type="time" id="su-nto"></label></div>
+        <span class="su-l">Text</span>
+        <div class="chips"><button class="chip" data-k="textSize" data-v="1">Normal text</button><button class="chip" data-k="textSize" data-v="1.15">Large text</button><button class="chip" data-k="textSize" data-v="1.3">Larger text</button><button class="chip apponly" data-k="textSize" data-v="auto">Like the device</button><button class="chip" data-k="contrast">High contrast</button></div>
+      </section>
+      <section class="su-s" data-step="extras" data-title="Extras &amp; lock" data-ic="i-lock">
+        <span class="su-l">Extras &amp; lock</span>
+        <h2>Last touches.</h2>
+        <div class="chips"><button class="chip" data-k="dynViews">Jump to Sun &amp; Moon at golden hour</button><button class="chip" data-k="edgeSwipe">Swipe from the edge to switch screens</button><button class="chip" data-k="autoMusic">Open Now Playing automatically</button></div>
+        <span class="su-l">Lock</span>
+        <p>Lock Settings with a PIN, so children or guests can't change anything or see your keys.</p>
+        <div class="chips"><button class="chip" data-k="pinOn">Lock Settings with a PIN</button></div>
+        <div id="su-pinrow" hidden><input class="su-in" id="su-pin" inputmode="numeric" maxlength="4" placeholder="4-digit PIN" autocomplete="off"></div>
+        <p class="su-hint" id="su-pinhint" hidden>Enter 4 digits for the PIN, or turn the lock off.</p>
       </section>
       <section class="su-s">
         <svg class="su-ck" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46"/><path d="M30 52l14 14 27-30"/></svg>
         <h2>All set.</h2>
-        <p>Tap the screen to show controls. Swipe to change photos, or to move between weather views. Additional options, including running setup again, are in Settings.</p>
+        <div class="su-sum" id="su-sum"></div>
+        <p>Tap the screen to show controls. Swipe to change photos, or to move between weather views. Tip: save a backup of your settings in Settings → Advanced.</p>
       </section>
     </div>
     <div class="su-nav"><button id="su-back" type="button">Back</button><button id="su-next" class="pri" type="button">Get started</button></div>
+    </div>
   </div>
 </div>
 <input type="file" id="files" accept="image/*" webkitdirectory multiple hidden>
+<input type="file" id="bkfile" accept=".json,application/json,text/plain" hidden>
+<dialog id="pindlg" class="minidlg">
+  <h2 id="pintitle">Enter your PIN</h2>
+  <div class="pindots" id="pindots"><b></b><b></b><b></b><b></b></div>
+  <p class="pinmsg" id="pinmsg"></p>
+  <div class="pinpad" id="pinpad"><button type="button">1</button><button type="button">2</button><button type="button">3</button><button type="button">4</button><button type="button">5</button><button type="button">6</button><button type="button">7</button><button type="button">8</button><button type="button">9</button><button type="button" data-x="cancel">Cancel</button><button type="button">0</button><button type="button" data-x="del">⌫</button></div>
+</dialog>
+<dialog id="restoredlg" class="minidlg">
+  <h2>Restore from a backup</h2>
+  <p>Choose a backup file, or paste a backup code. Your current settings are replaced and the frame restarts.</p>
+  <div class="row l"><button type="button" id="rsfile">Choose backup file…</button></div>
+  <textarea id="rscode" rows="4" placeholder="…or paste a backup code here"></textarea>
+  <small id="rsres"></small>
+  <div class="row"><button type="button" id="rsclose">Cancel</button><button type="button" id="rsapply" class="pri">Restore</button></div>
+</dialog>
+<dialog id="repdlg" class="minidlg wide">
+  <h2>Report a problem</h2>
+  <label for="repwhat">What happened?</label>
+  <textarea id="repwhat" rows="3" placeholder="For example: the weather stopped updating after I changed the provider."></textarea>
+  <label for="repdiag">Technical details (sent with the report)</label>
+  <textarea id="repdiag" rows="8" readonly></textarea>
+  <small id="repres"></small>
+  <div class="row"><button type="button" id="repclose">Close</button><button type="button" id="repcopy">Copy report</button><button type="button" id="repgo" class="pri">Open on GitHub</button></div>
+</dialog>
+<div id="nightblk" hidden></div>
 <input type="file" id="bgfile" accept="image/*" hidden>
 
 <dialog id="dlg" class="setdlg">
@@ -1325,6 +1494,7 @@ body.themed .ck-tools button.on .ic{color:var(--accent-ink)}
       <button type="button" data-tab="photos"><svg class="ic"><use href="#i-image"/></svg><span>Photos</span></button>
       <button type="button" data-tab="music"><svg class="ic"><use href="#i-music"/></svg><span>Music</span></button>
       <button type="button" data-tab="weather"><svg class="ic"><use href="#i-cloudsun"/></svg><span>Weather</span></button>
+      <button type="button" data-tab="region"><svg class="ic"><use href="#i-pin"/></svg><span>Region</span></button>
       <button type="button" data-tab="home"><svg class="ic"><use href="#i-cal"/></svg><span>Home &amp; calendar</span></button>
       <button type="button" data-tab="advanced"><svg class="ic"><use href="#i-timer"/></svg><span>Advanced</span></button>
     </nav>
@@ -1365,6 +1535,18 @@ body.themed .ck-tools button.on .ic{color:var(--accent-ink)}
           <small id="autonote"></small>
         </div>
         <small>Tap the screen to brighten it fully for a minute.</small>
+      </div>
+      <div class="sd-card">
+        <h3>Night screen</h3>
+        <label for="nightmode">At night</label><select id="nightmode"><option value="off">Keep the normal screen</option><option value="red">Show the red night clock</option><option value="black">Turn the screen black</option></select>
+        <div id="nightset" class="two"><div><label for="nightfrom">From</label><input id="nightfrom" type="time"></div><div><label for="nightto">Until</label><input id="nightto" type="time"></div></div>
+        <small>During these hours the frame doesn't jump to sky events. Tap the screen to see the normal screen for a minute; alarms still ring and music still shows. In the morning it goes back to Home.</small>
+      </div>
+      <div class="sd-card">
+        <h3>Accessibility</h3>
+        <label for="textsize">Text size</label><select id="textsize"><option value="1">Normal</option><option value="1.15">Large</option><option value="1.3">Larger</option><option value="auto">Like the device</option></select>
+        <label class="ck" for="contrast"><input id="contrast" type="checkbox"> High contrast (stronger outlines, less see-through glass)</label>
+        <small id="motioninfo"></small>
       </div>
       <div class="sd-card">
         <h3>Navigation</h3>
@@ -1453,7 +1635,22 @@ body.themed .ck-tools button.on .ic{color:var(--accent-ink)}
         <label class="ck" for="dynviews"><input id="dynviews" type="checkbox"> Dynamic view switching (auto-jumps to Sun, Moon, or Weather during celestial events)</label>
         <small>Opens the Sun view at golden hour, sunrise, sunset and solar noon, the Moon view at moonrise and full moon, and the Weather overview during rain or storms. 5 minutes after the event is over it goes back to Home, unless you picked another screen in the meantime.</small>
         <label class="ck" for="wxwarn"><input id="wxwarn" type="checkbox"> Show weather warnings</label>
-        <small>Warnings are worked out from the forecast (strong gusts, heavy rain or snow, storms, freezing rain, heat, severe cold, fog). They are not official HungaroMet warnings.</small>
+        <small>Official warnings are shown where they are available: most of Europe through MeteoAlarm (in the Android app) and the US through the National Weather Service. Everywhere else, and in between, warnings are worked out from the forecast (strong gusts, heavy rain or snow, storms, freezing rain, heat, severe cold, fog).</small>
+      </div>
+    </section>
+
+    <section class="sd-panel" data-panel="region">
+      <div class="sd-card">
+        <h3>Units &amp; formats</h3>
+        <div class="two"><div><label for="tempu">Temperature</label><select id="tempu"><option value="c">Celsius (°C)</option><option value="f">Fahrenheit (°F)</option></select></div>
+        <div><label for="windu">Wind speed</label><select id="windu"><option value="kmh">km/h</option><option value="mph">mph</option><option value="ms">m/s</option></select></div></div>
+        <label for="clockfmt">Clock</label><select id="clockfmt"><option value="24">24-hour (18:30)</option><option value="12">12-hour (6:30 PM)</option></select>
+      </div>
+      <div class="sd-card">
+        <h3>Holidays, name days &amp; warnings</h3>
+        <div class="reginfo" id="regioninfo"></div>
+        <label class="ck" for="namedays"><input id="namedays" type="checkbox"> Show name days</label>
+        <small>Everything here follows the country of your location (Weather → Location). Seasonal touches can be turned off under Home &amp; calendar → Seasons.</small>
       </div>
     </section>
 
@@ -1503,8 +1700,32 @@ body.themed .ck-tools button.on .ic{color:var(--accent-ink)}
         <small>The app starts by itself after the tablet boots once Android allows it to “display over other apps”. The frame itself updates automatically; only changes to the app shell need a new download.</small>
       </div>
       <div class="sd-card">
+        <h3>Lock</h3>
+        <p class="sd-cur" id="pinstate"></p>
+        <div class="row l"><button type="button" id="pinset">Set a PIN</button><button type="button" id="pinoff" hidden>Remove the PIN</button></div>
+        <small>Asks for a 4-digit PIN before Settings or setup open, so children or guests can't change things or see your keys. It's a simple lock, not real security: clearing the app's or browser's data removes it, together with all settings.</small>
+      </div>
+      <div class="sd-card">
+        <h3>Backup</h3>
+        <label class="ck" for="bkkeys"><input id="bkkeys" type="checkbox"> Include API keys, usernames and the calendar link</label>
+        <label class="ck" for="bkbg"><input id="bkbg" type="checkbox" checked> Include the Home background picture (file only)</label>
+        <div class="row l"><button type="button" id="bksave">Save backup file</button><button type="button" id="bkcopy">Copy as code</button><button type="button" id="bkrestore">Restore…</button></div>
+        <small id="bkres"></small>
+        <small>Photos aren't included (choose them again on the new device), and Spotify has to be connected again. Don't share a backup that has keys in it.</small>
+      </div>
+      <div class="sd-card">
+        <h3>Updates</h3>
+        <label class="ck" for="betaopt"><input id="betaopt" type="checkbox"> Get beta updates (new versions arrive here first and may have bugs)</label>
+        <small id="chaninfo"></small>
+      </div>
+      <div class="sd-card">
+        <h3>Report a problem</h3>
+        <small>Opens a ready-to-send bug report on GitHub with the frame version, device and recent errors. API keys, logins and your location are left out, and you can read everything before sending.</small>
+        <div class="row l"><button type="button" id="repbtn">Report a problem…</button></div>
+      </div>
+      <div class="sd-card">
         <h3>About</h3>
-        <small>Photo frame v42. Weather data provided by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a>. Lyrics provided by <a href="https://lrclib.net/" target="_blank" rel="noopener">LRCLIB</a>. Radar by RainViewer, map © OpenStreetMap contributors, tempo data from Deezer, picture of the day from Wikimedia Commons.</small>
+        <small>Photo frame v43. Weather data provided by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a>. Lyrics provided by <a href="https://lrclib.net/" target="_blank" rel="noopener">LRCLIB</a>. Radar by RainViewer, map © OpenStreetMap contributors, tempo data from Deezer, picture of the day from Wikimedia Commons.</small>
       </div>
     </section>
 
@@ -1516,7 +1737,18 @@ body.themed .ck-tools button.on .ic{color:var(--accent-ink)}
 /* ===== v40: Android app bridge =====
    Inside the photo-frame Android app, Capacitor provides window.Capacitor and the native "Frame" plugin.
    In a normal browser none of this exists and everything falls back to plain web behaviour. */
-window.WEB_VERSION = '42.0';
+window.WEB_VERSION = '43.0';
+window.FRAME_CHANNEL = /\/beta\/(index\.html)?$/.test(location.pathname) ? 'beta' : 'stable';
+/* the normal (stable) address of this frame, also used as the Spotify return address */
+window.STABLE_URL = location.origin + location.pathname.replace(/beta\/(index\.html)?$/, '').replace(/index\.html$/, '');
+/* v43: a short list of recent problems for "Report a problem" (never contains keys: only host and path of failed requests) */
+window.__errs = [];
+window.logErr = m => { try { const a = window.__errs, t = new Date().toTimeString().slice(0, 8) + ' ' + String(m).slice(0, 240); if(a[a.length - 1] !== t) a.push(t); if(a.length > 30) a.shift(); } catch {} };
+addEventListener('error', e => { if(e && e.message) logErr(e.message + (e.lineno ? ' (line ' + e.lineno + ')' : '')); });
+addEventListener('unhandledrejection', e => { const r = e && e.reason; logErr('Unhandled: ' + ((r && (r.message || r)) || '?')); });
+{ const ce = console.error; console.error = function(...a){ logErr(a.map(x => (x && x.message) || String(x)).join(' ')); return ce.apply(this, a); }; }
+{ const f0 = window.fetch.bind(window), where = u => { try { const x = new URL(typeof u === 'string' ? u : u.url, location.href); return x.host + x.pathname; } catch { return '?'; } };
+  window.fetch = async (u, o) => { try { const r = await f0(u, o); if(!r.ok && r.status !== 304) logErr('HTTP ' + r.status + ' ' + where(u)); return r; } catch(e){ logErr('Network error ' + where(u) + ': ' + (e.message || e)); throw e; } }; }
 window.isApp = () => !!((window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) || /PhotoFrameApp/.test(navigator.userAgent));
 window.nat = (method, options) => {
   const C = window.Capacitor;
@@ -1551,6 +1783,57 @@ const HU = Object.assign(Object.create(null), {
   "Where are you?": "Hol vagy?",
   "Used for weather, sunrise, sunset and the moon. Currently:": "Az időjáráshoz, a napkeltéhez, a napnyugtához és a Holdhoz használjuk. Jelenleg:",
   "Search for a city": "Város keresése",
+  /* v43 setup */
+  "Photo frame setup": "Képkeret beállítása", "Everything can be changed later in Settings.": "Később mindent módosíthatsz a Beállításokban.",
+  "Device": "Eszköz", "Your device": "Az eszközöd", "Location & weather": "Helyszín és időjárás", "Region & units": "Régió és mértékegységek", "Look": "Megjelenés", "Night & comfort": "Éjszaka és kényelem", "Extras & lock": "Extrák és zár",
+  "How should things look?": "Hogyan jelenjenek meg az adatok?", "°C · Celsius": "°C · Celsius", "°F · Fahrenheit": "°F · Fahrenheit", "24-hour · 18:30": "24 órás · 18:30", "12-hour · 6:30 PM": "12 órás · 6:30 PM",
+  "On the Home screen": "A kezdőlapon", "Holidays & seasonal touches": "Ünnepek és évszakos apróságok", "Name days": "Névnapok",
+  "Easy on the eyes.": "Kíméletes a szemnek.", "No dimming": "Nincs sötétítés", "Dim at night": "Éjjel sötétebb", "Light sensor": "Fényérzékelő", "Front camera": "Előlapi kamera",
+  "Normal screen": "Szokásos képernyő", "Red night clock": "Vörös éjszakai óra", "Black screen": "Fekete képernyő", "From": "Ettől", "Until": "Eddig", "Text": "Szöveg",
+  "Normal text": "Normál szöveg", "Large text": "Nagy szöveg", "Larger text": "Nagyobb szöveg", "High contrast": "Nagy kontraszt",
+  "Last touches.": "Utolsó simítások.", "Lock Settings with a PIN, so children or guests can't change anything or see your keys.": "Zárold a beállításokat PIN-kóddal, hogy a gyerekek vagy a vendégek ne tudjanak módosítani semmit, és ne lássák a kulcsaidat.",
+  "Lock Settings with a PIN": "Beállítások zárolása PIN-kóddal", "4-digit PIN": "4 jegyű PIN", "Enter 4 digits for the PIN, or turn the lock off.": "Adj meg 4 számjegyet a PIN-hez, vagy kapcsold ki a zárat.",
+  "This device asks for reduced motion, so animations start switched off.": "Ez az eszköz kevesebb mozgást kér, ezért az animációk kikapcsolva indulnak.",
+  "Tap the screen to show controls. Swipe to change photos, or to move between weather views. Tip: save a backup of your settings in Settings → Advanced.": "Koppints a képernyőre a vezérlők megjelenítéséhez. Húzással lapozhatsz a fotók és az időjárás-nézetek között. Tipp: a beállításaidról mentést készíthetsz a Beállítások → Speciális alatt.",
+  "On": "Be", "Units": "Mértékegységek", "Brightness": "Fényerő", "At night": "Éjszaka", "Lock": "Zár", "Location": "Helyszín", "Music": "Zene", "Photos": "Fotók",
+  /* v43 part 2 */
+  "Region": "Régió", "Units & formats": "Mértékegységek és formátumok", "Temperature": "Hőmérséklet", "Celsius (°C)": "Celsius (°C)", "Fahrenheit (°F)": "Fahrenheit (°F)", "Wind speed": "Szélsebesség", "Clock": "Óra",
+  "24-hour (18:30)": "24 órás (18:30)", "12-hour (6:30 PM)": "12 órás (6:30 PM)", "Holidays, name days & warnings": "Ünnepek, névnapok és figyelmeztetések", "Show name days": "Névnapok megjelenítése",
+  "Everything here follows the country of your location (Weather → Location). Seasonal touches can be turned off under Home & calendar → Seasons.": "Mindez a helyszíned országához igazodik (Időjárás → Helyszín). Az ünnepi apróságok a Kezdőlap és naptár → Évszakok alatt kapcsolhatók ki.",
+  "Choose your location to see what is available.": "Válaszd ki a helyszínt, hogy lásd, mi érhető el.",
+  "Holidays: built-in Hungarian list": "Ünnepek: beépített magyar lista", "Holidays: public holidays of this country": "Ünnepek: az ország hivatalos ünnepnapjai",
+  "Name days: available": "Névnapok: elérhetők", "Name days: not available for this country": "Névnapok: ebben az országban nem elérhetők",
+  "Official warnings: National Weather Service": "Hivatalos figyelmeztetések: National Weather Service", "Official warnings: HungaroMet (in the Android app)": "Hivatalos figyelmeztetések: HungaroMet (az Android-alkalmazásban)",
+  "Official warnings: MeteoAlarm (in the Android app)": "Hivatalos figyelmeztetések: MeteoAlarm (az Android-alkalmazásban)", "Official warnings: not available here, forecast-based ones are shown": "Hivatalos figyelmeztetések: itt nem érhetők el, az előrejelzés alapúak jelennek meg",
+  "Night screen": "Éjszakai képernyő", "At night": "Éjszaka", "Keep the normal screen": "Maradjon a szokásos képernyő", "Show the red night clock": "Vörös éjszakai óra", "Turn the screen black": "Fekete képernyő",
+  "During these hours the frame doesn't jump to sky events. Tap the screen to see the normal screen for a minute; alarms still ring and music still shows. In the morning it goes back to Home.": "Ezekben az órákban a keret nem ugrik égi eseményekre. Koppints a képernyőre, és egy percig a szokásos képernyő látszik; az ébresztő továbbra is szól, és a zene is megjelenik. Reggel visszatér a kezdőlapra.",
+  "Accessibility": "Akadálymentesség", "Text size": "Szövegméret", "Normal": "Normál", "Large": "Nagy", "Larger": "Nagyobb", "Like the device": "Mint az eszközön",
+  "High contrast (stronger outlines, less see-through glass)": "Nagy kontraszt (erősebb körvonalak, kevésbé áttetsző üveg)",
+  "This device asks for reduced motion. You can turn animations off under Performance.": "Ez az eszköz kevesebb mozgást kér. Az animációkat a Teljesítmény alatt kapcsolhatod ki.",
+  "Lock": "Zár", "Set a PIN": "PIN beállítása", "Change the PIN": "PIN módosítása", "Remove the PIN": "PIN eltávolítása",
+  "Settings are locked with a PIN.": "A beállítások PIN-kóddal zárolva vannak.", "No PIN set. Anyone can open Settings.": "Nincs PIN. Bárki megnyithatja a beállításokat.",
+  "Asks for a 4-digit PIN before Settings or setup open, so children or guests can't change things or see your keys. It's a simple lock, not real security: clearing the app's or browser's data removes it, together with all settings.": "A beállítások vagy a beállítóvarázsló megnyitása előtt 4 jegyű PIN-t kér, így a gyerekek vagy a vendégek nem tudnak módosítani semmit, és nem látják a kulcsaidat. Ez egyszerű zár, nem valódi biztonság: az alkalmazás vagy a böngésző adatainak törlése megszünteti, az összes beállítással együtt.",
+  "Enter your PIN": "Add meg a PIN-kódot", "Choose a 4-digit PIN": "Válassz egy 4 jegyű PIN-t", "Enter the same PIN again": "Add meg újra ugyanazt a PIN-t", "Wrong PIN. Try again.": "Hibás PIN. Próbáld újra.", "Cancel": "Mégse",
+  "The two PINs were different. Nothing was changed.": "A két PIN nem egyezett. Nem változott semmi.", "PIN set. Settings are now locked.": "PIN beállítva. A beállítások most zárolva vannak.", "PIN removed.": "PIN eltávolítva.",
+  "Backup": "Biztonsági mentés", "Include API keys, usernames and the calendar link": "API-kulcsok, felhasználónevek és a naptárlink mentése is", "Include the Home background picture (file only)": "A kezdőlap háttérképének mentése is (csak fájlba)",
+  "Save backup file": "Mentés fájlba", "Copy as code": "Másolás kódként", "Restore…": "Visszaállítás…",
+  "Photos aren't included (choose them again on the new device), and Spotify has to be connected again. Don't share a backup that has keys in it.": "A fotók nincsenek benne (az új eszközön válaszd ki őket újra), és a Spotify-t újra csatlakoztatni kell. Kulcsokat tartalmazó mentést ne ossz meg.",
+  "Backup file downloaded.": "A mentés letöltve.", "This app version can't save files yet. Update the app, or use \"Copy as code\".": "Ez az alkalmazásverzió még nem tud fájlt menteni. Frissítsd az alkalmazást, vagy használd a „Másolás kódként” lehetőséget.",
+  "Copying is blocked here. Use \"Save backup file\" instead.": "A másolás itt le van tiltva. Használd inkább a „Mentés fájlba” gombot.",
+  "Restore from a backup": "Visszaállítás mentésből", "Choose a backup file, or paste a backup code. Your current settings are replaced and the frame restarts.": "Válassz egy mentésfájlt, vagy illessz be egy mentéskódot. A jelenlegi beállítások lecserélődnek, és a keret újraindul.",
+  "Choose backup file…": "Mentésfájl kiválasztása…", "…or paste a backup code here": "…vagy illeszd be ide a mentéskódot", "Restore": "Visszaállítás", "Restored. Restarting…": "Visszaállítva. Újraindítás…",
+  "This is not a photo-frame backup.": "Ez nem photo-frame mentés.", "This doesn't look like a photo-frame backup.": "Ez nem tűnik photo-frame mentésnek.", "Choose a file or paste a code first.": "Előbb válassz fájlt, vagy illessz be egy kódot.", "This device ran out of storage space.": "Ezen az eszközön elfogyott a tárhely.",
+  "Updates": "Frissítések", "Get beta updates (new versions arrive here first and may have bugs)": "Béta frissítések (az új verziók ide érkeznek először, és hibásak lehetnek)",
+  "Switching to beta updates…": "Váltás a béta frissítésekre…", "Switching back to normal updates…": "Visszaváltás a normál frissítésekre…",
+  "Report a problem": "Hiba bejelentése", "Report a problem…": "Hiba bejelentése…",
+  "Opens a ready-to-send bug report on GitHub with the frame version, device and recent errors. API keys, logins and your location are left out, and you can read everything before sending.": "Elküldésre kész hibajelentést nyit a GitHubon a keret verziójával, az eszközzel és a legutóbbi hibákkal. Az API-kulcsok, a bejelentkezések és a helyszíned kimaradnak, és küldés előtt mindent elolvashatsz.",
+  "What happened?": "Mi történt?", "For example: the weather stopped updating after I changed the provider.": "Például: az időjárás nem frissült, miután szolgáltatót váltottam.",
+  "Technical details (sent with the report)": "Technikai részletek (a jelentéssel együtt küldjük)", "Close": "Bezárás", "Copy report": "Jelentés másolása", "Open on GitHub": "Megnyitás a GitHubon", "Collecting…": "Gyűjtés…",
+  "Copied. You can paste it into an email or a message.": "Kimásolva. Beillesztheted egy e-mailbe vagy üzenetbe.", "Copying is blocked here.": "A másolás itt le van tiltva.",
+  "GitHub opened. You need a free GitHub account to send it; without one, use \"Copy report\".": "Megnyílt a GitHub. A küldéshez ingyenes GitHub-fiók kell; anélkül használd a „Jelentés másolása” gombot.",
+  /* v43 part 1 */
+  "Official warnings are shown where they are available: most of Europe through MeteoAlarm (in the Android app) and the US through the National Weather Service. Everywhere else, and in between, warnings are worked out from the forecast (strong gusts, heavy rain or snow, storms, freezing rain, heat, severe cold, fog).": "Ahol elérhetők, hivatalos figyelmeztetések jelennek meg: Európa nagy részén a MeteoAlarmon keresztül (az Android-alkalmazásban), az USA-ban a National Weather Service-től. Máshol, illetve ezek mellett a figyelmeztetéseket az előrejelzésből számoljuk (erős széllökések, sok eső vagy hó, zivatar, ónos eső, hőség, erős hideg, köd).",
+  "Valentine's Day": "Valentin-nap", "Halloween": "Halloween", "Christmas Eve": "Szenteste", "New Year's Eve": "Szilveszter",
   /* v42 */
   "Step 1 · Your device": "1. lépés · Az eszközöd", "What is this device?": "Milyen eszköz ez?", "Detecting…": "Felismerés…", "Performance": "Teljesítmény",
   "Tablet": "Táblagép", "Phone": "Telefon", "PC": "PC", "Mac": "Mac", "iPad": "iPad", "iPhone": "iPhone",
@@ -1586,7 +1869,7 @@ const HU = Object.assign(Object.create(null), {
   "Automatic switching": "Automatikus váltás", "Now Playing look": "A Most szól nézet megjelenése", "Location": "Helyszín", "Weather screens": "Időjárás-képernyők",
   "Home screen background": "A kezdőlap háttere", "Seasons": "Évszakok", "Time-of-day preview": "Napszak-előnézet", "Debugging": "Hibakeresés", "About": "Névjegy",
   ". It is stored only in this browser.": ". Csak ebben a böngészőben van tárolva.",
-  "Photo frame v42. Weather data provided by": "Képkeret v42. Időjárási adatok:",
+  "Photo frame v43. Weather data provided by": "Képkeret v43. Időjárási adatok:",
   ". Radar by RainViewer, map © OpenStreetMap contributors, tempo data from Deezer, picture of the day from Wikimedia Commons.": ". Radar: RainViewer, térkép: © OpenStreetMap közreműködők, tempóadatok: Deezer, a nap képe: Wikimedia Commons.",
   "Opens the Sun view at golden hour, sunrise, sunset and solar noon, the Moon view at moonrise and full moon, and the Weather overview during rain or storms. 5 minutes after the event is over it goes back to Home, unless you picked another screen in the meantime.": "Aranyórakor, napkeltekor, napnyugtakor és delelésekor a Nap nézetet, holdkeltekor és teliholdkor a Hold nézetet, eső vagy vihar idején az időjárás-áttekintést nyitja meg. 5 perccel az esemény vége után visszatér a kezdőlapra, hacsak közben nem választottál másik képernyőt.",
   "Debug mode (show technical information on every screen)": "Hibakereső mód (technikai információk minden képernyőn)",
@@ -1853,12 +2136,20 @@ const PAT = [
   [/^(\d+) photos saved on this tablet(?: · (\d+) MB)?$/, (a, b) => `${a} fotó elmentve ezen a táblagépen${b ? ' · ' + b + ' MB' : ''}`],
   [/^Show hidden photos again \((\d+)\)$/, a => `Rejtett fotók visszaállítása (${a})`],
   [/^Working · (\d+) events in the next two weeks$/, a => `Működik · ${a} esemény a következő két hétben`],
-  [/^Strong wind gusts up to (\d+) km\/h$/, a => `Erős széllökések, akár ${a} km/h`],
+  [/^Strong wind gusts up to (\d+) (km\/h|mph|m\/s)$/, (a, b) => `Erős széllökések, akár ${a} ${b}`],
+  [/^Official warnings from (.+)$/, a => `Hivatalos figyelmeztetések: ${a}`],
+  [/^Official warnings \((.+)\) and forecast-based ones$/, a => `Hivatalos (${a}) és előrejelzés alapú figyelmeztetések`],
   [/^Heavy rain, about (\d+) mm in 6 hours$/, a => `Heves eső, 6 óra alatt kb. ${a} mm`],
   [/^Snow, about (\d+) cm in 24 hours$/, a => `Havazás, 24 óra alatt kb. ${a} cm`],
   [/^Heat, up to (-?\d+)°$/, a => `Hőség, akár ${a}°`],
   [/^Severe cold, down to (-?\d+)°$/, a => `Erős hideg, akár ${a}°`],
   [/^From (\d\d:\d\d)$/, a => `${a}-tól`],
+  [/^From (\d{1,2}:\d\d (AM|PM))$/, a => `${a}-tól`],
+  [/^Saved to (.+)$/, a => `Mentve ide: ${a}`],
+  [/^Could not save: (.+)$/, a => `Nem sikerült menteni: ${a}`],
+  [/^Backup code copied \(([\d.]+) KB\)\. Paste it somewhere safe, for example a note or an email to yourself\.$/, a => `Mentéskód kimásolva (${a} KB). Tedd biztonságos helyre, például egy jegyzetbe vagy egy magadnak küldött e-mailbe.`],
+  [/^This frame is running the beta version \(v(.+)\)\.$/, a => `Ez a keret a béta verziót futtatja (v${a}).`],
+  [/^This frame is running the normal version \(v(.+)\)\.$/, a => `Ez a keret a normál verziót futtatja (v${a}).`],
   [/^(\d+) warnings$/, a => `${a} figyelmeztetés`],
   [/^(\d+) min$/, a => `${a} perc`],
   [/^([+−]) (\d+) min$/, (a, b) => `${a} ${b} perc`],
@@ -1981,6 +2272,26 @@ function setLang(l){
 
 // Change these if needed
 const CITY = Object.assign({ name: 'Dabas, Hungary', lat: 47.1875, lon: 19.3128 }, (() => { try { return JSON.parse(localStorage.getItem('pf') || '{}').city || {}; } catch { return {}; } })());
+/* v43: the country of the chosen place (holidays, name days, official warnings, suggested units).
+   New picks store it directly; older saved places look it up once. */
+function countryOf(){
+  if(CITY.cc) return Promise.resolve(CITY.cc);
+  const key = CITY.lat + ',' + CITY.lon;
+  if(countryOf._k === key) return countryOf._p;
+  countryOf._k = key;
+  return countryOf._p = (async () => {
+    try {
+      const j = await (await fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + CITY.lat + '&longitude=' + CITY.lon + '&localityLanguage=en')).json();
+      const cc = String(j.countryCode || '').toUpperCase();
+      if(cc && CITY.lat + ',' + CITY.lon === key){
+        CITY.cc = cc;
+        try { if(cfg.city){ cfg.city.cc = cc; localStorage.setItem('pf', JSON.stringify(cfg)); } } catch {}
+      }
+      return cc;
+    } catch { countryOf._k = ''; return ''; }
+  })();
+}
+window.countryOf = countryOf;
 const slideMs = () => Math.max(3, +cfg.secs || 15) * 1000;
 
 const $ = s => document.querySelector(s);
@@ -2118,6 +2429,20 @@ if(cfg.idleWx === undefined) cfg.idleWx = 5;
 if(cfg.dynViews === undefined) cfg.dynViews = true;
 if(cfg.timelapse === undefined) cfg.timelapse = true;
 if(cfg.elevateClock === undefined) cfg.elevateClock = true;
+/* v43: units and formats. Weather data stays metric; only what is shown is converted. */
+const cU = c => cfg.tempU === 'f' ? c * 9 / 5 + 32 : c;
+const wU = k => cfg.windU === 'mph' ? k / 1.609344 : cfg.windU === 'ms' ? k / 3.6 : k;
+const WUN = () => cfg.windU === 'mph' ? 'mph' : cfg.windU === 'ms' ? 'm/s' : 'km/h';
+const HH = d => cfg.hour12 ? String(d.getHours() % 12 || 12) : String(d.getHours()).padStart(2, '0');
+const HH2 = d => String(cfg.hour12 ? d.getHours() % 12 || 12 : d.getHours()).padStart(2, '0');
+/* every time shown with toLocaleTimeString follows the 12/24-hour choice */
+{ const lts = Date.prototype.toLocaleTimeString;
+  Date.prototype.toLocaleTimeString = function(l, o){
+    if(o && o.hour){ o = Object.assign({}, o); delete o.hour12; if(cfg.hour12){ o.hourCycle = 'h12'; if(o.hour === '2-digit') o.hour = 'numeric'; } else o.hourCycle = 'h23'; }
+    return lts.call(this, l, o);
+  }; }
+/* "18:30" style strings from the weather data */
+const hmFmt = s => { const m = /^(\d{1,2}):(\d{2})$/.exec(s || ''); return m && cfg.hour12 ? new Date(2000, 0, 1, +m[1], +m[2]).toLocaleTimeString(LOC, { hour: '2-digit', minute: '2-digit' }) : s; };
 applyPerf();
 
 function applyFade(){
@@ -2381,7 +2706,7 @@ async function weather(){
       if((cfg.wxProvider || 'om') === 'om') throw e;
       r = await fetchWx('om');
     }
-    setNum($('#temp'), Math.round(r.current.temperature_2m) + '°');
+    setNum($('#temp'), Math.round(cU(r.current.temperature_2m)) + '°');
     $('#desc').innerHTML = wi(r.current.weather_code, r.current.is_day === 1) + W(r.current.weather_code);
     $('#loc').innerHTML = ic('pin') + CITY.name;
     wxData = r; r.at = Date.now();
@@ -2790,7 +3115,7 @@ function showW(k){
   if(!wTarget) return;
   const T = wTarget, q = k < 1, f = v => Math.round(v * k), rows = $('#wstats').children;
   setNum($('#wtemp'), f(T.temp) + '°', q);
-  [f(T.feel) + '°', f(T.hi) + '° / ' + f(T.lo) + '°', f(T.wind) + ' km/h', f(T.hum) + '%', T.rise, T.set]
+  [f(T.feel) + '°', f(T.hi) + '° / ' + f(T.lo) + '°', f(T.wind) + ' ' + WUN(), f(T.hum) + '%', T.rise, T.set]
     .forEach((v, i) => setNum(rows[i].querySelector('b'), v, q));
 }
 function renderW(){
@@ -2802,7 +3127,7 @@ function renderW(){
     $('#wstats').innerHTML = [['Apparent temperature', 'thermo'], ['Daily high / low', 'updown'], ['Wind speed', 'wind'], ['Relative humidity', 'drop'], ['Sunrise', 'sunrise'], ['Sunset', 'sunset']]
       .map(r => `<div><span>${ic(r[1])}${r[0]}</span><b></b></div>`).join('');
   }
-  wTarget = { temp: c.temperature_2m, feel: c.apparent_temperature, hi: d.temperature_2m_max[0], lo: d.temperature_2m_min[0], wind: c.wind_speed_10m, hum: c.relative_humidity_2m, rise: t(d.sunrise[0]), set: t(d.sunset[0]) };
+  wTarget = { temp: cU(c.temperature_2m), feel: cU(c.apparent_temperature), hi: cU(d.temperature_2m_max[0]), lo: cU(d.temperature_2m_min[0]), wind: wU(c.wind_speed_10m), hum: c.relative_humidity_2m, rise: hmFmt(t(d.sunrise[0])), set: hmFmt(t(d.sunset[0])) };
   showW(wk);
   paintSky();
   const nx = getUpcoming24h().filter((x, i) => i % 3 === 0).slice(0, 6);
@@ -2831,7 +3156,7 @@ function getUpcoming24h(){
     items.push({
       time: h.time[i],
       ts: Date.parse(h.time[i]),
-      temp: Math.round(h.temperature_2m[i]),
+      temp: Math.round(cU(h.temperature_2m[i])),
       apparent: Math.round(h.apparent_temperature ? h.apparent_temperature[i] : h.temperature_2m[i]),
       precip: Math.round((h.precipitation_probability && h.precipitation_probability[i]) || 0),
       code: h.weather_code[i],
@@ -2990,7 +3315,7 @@ function drawHourlyChart(items){
 /* ---------- Sun Sub-View & Graph ---------- */
 function renderSun(){
   if(!wxData) return;
-  const c = wxData.current, d = wxData.daily, t = s => s.slice(11, 16);
+  const c = wxData.current, d = wxData.daily, t = s => hmFmt(s.slice(11, 16));
   const sr = Date.parse(d.sunrise[0]), ss = Date.parse(d.sunset[0]);
   const now = getEffectiveTime();
   $('#sunloc').innerHTML = ic('pin') + CITY.name;
@@ -3419,7 +3744,7 @@ function updateBadges(ev){
 }
 
 function checkDynamicEvents(){
-  if(awayMode || cfg.dynViews === false || !wxData) return;
+  if(awayMode || cfg.dynViews === false || !wxData || (window.nightActive && nightActive())) return;
   const now = getEffectiveTime();
   const dStr = new Date(now).toISOString().slice(0, 10);
 
@@ -3734,7 +4059,7 @@ function syncTod(){
   const l = new Date(Date.now() - (wxData.at || Date.now()) + Date.parse(wxData.current.time)), lm = l.getHours() * 60 + l.getMinutes();
   s.value = Math.min(1435, sim === null ? Math.round(lm / 5) * 5 : sim);
   $('#todv').textContent = sim === null ? hm(lm) + ' (live)' : hm(sim) + ' (preview)';
-  $('#todinfo').textContent = 'Sunrise ' + wxData.daily.sunrise[0].slice(11, 16) + ', sunset ' + wxData.daily.sunset[0].slice(11, 16) + '.';
+  $('#todinfo').textContent = 'Sunrise ' + hmFmt(wxData.daily.sunrise[0].slice(11, 16)) + ', sunset ' + hmFmt(wxData.daily.sunset[0].slice(11, 16)) + '.';
 }
 $('#tod').oninput = e => {
   sweepStop();
@@ -3957,7 +4282,7 @@ function wxPicker(ids, st){
     res.className = 'wxres'; res.textContent = 'Testing…';
     try {
       const r = await fetchWx(st.p, st);
-      res.textContent = 'Working · ' + Math.round(r.current.temperature_2m) + '° · ' + tr(W(r.current.weather_code)); res.className = 'wxres ok';
+      res.textContent = 'Working · ' + Math.round(cU(r.current.temperature_2m)) + '° · ' + tr(W(r.current.weather_code)); res.className = 'wxres ok';
     } catch(e){ res.textContent = 'Failed: ' + (e.message === 'No API key' ? tr('No API key') : e.message); res.className = 'wxres bad'; }
   };
   paint();
@@ -3980,12 +4305,36 @@ $('#set').addEventListener('click', () => {
   let n = 0, S = {}, geoT, suBg = null, suWx = null;
   steps.forEach(s => [...s.children].forEach((c, i) => c.style.setProperty('--i', i)));
   dots.innerHTML = steps.map(() => '<b></b>').join('');
+  /* v43: the step list on the left */
+  const side = $('#su-list'); let far = 0, k0 = 0;
+  side.innerHTML = steps.map((st, i) => st.dataset.title ? '<li data-i="' + i + '"><button type="button"><span class="n"><i>' + (++k0) + '</i><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span><svg class="ic"><use href="#' + st.dataset.ic + '"/></svg><span class="t">' + st.dataset.title + '</span></button></li>' : '').join('');
+  const sideUpd = () => {
+    far = Math.max(far, n);
+    su.classList.toggle('noside', !steps[n].dataset.title);
+    side.querySelectorAll('li').forEach(li => { const i = +li.dataset.i; li.classList.toggle('on', i === n); li.classList.toggle('done', i < far || (i < n)); li.classList.toggle('open', i <= far); });
+    if(n === steps.length - 1) summary();
+  };
+  side.addEventListener('click', e => { const li = e.target.closest('li'); if(!li) return; const i = +li.dataset.i; if(i === n || i > far) return; if(i > n && !canLeave()) return; show(i); });
+  const chipText = k => { const b = su.querySelector('[data-k="' + k + '"][aria-pressed=true]'); return b ? b.textContent.trim() : ''; };
+  function summary(){
+    const rows = [['Location', cityPicked ? CITY.name : ''], ['Units', [chipText('tempU'), chipText('windU'), chipText('hour12')].filter(Boolean).join(' · ')], ['Music', chipText('musicSrc')],
+      ['Brightness', chipText('dimMode')], ['At night', chipText('nightMode') + (S.nightMode && S.nightMode !== 'off' ? ' · ' + ($('#su-nfrom').value || '22:30') + '–' + ($('#su-nto').value || '07:00') : '')], ['Lock', S.pinOn ? 'On' : '']];
+    const box = $('#su-sum'); box.innerHTML = '';
+    rows.forEach(([l, v]) => { if(!v) return; const r = document.createElement('div'); const a = document.createElement('span'), b = document.createElement('b'); a.textContent = l; b.textContent = v; r.append(a, b); box.appendChild(r); });
+  }
+  /* units follow the country until they are picked by hand */
+  window.suCountry = () => {
+    if(!S._uTouched && window.unitDefaults){ Object.assign(S, unitDefaults(CITY.cc)); paint(); }
+    if(window.paintRegion) paintRegion($('#su-region'), CITY.cc);
+    $('#su-ndchip').hidden = !(window.nameDaysAvailable && nameDaysAvailable());
+  };
   const paint = () => {
     su.querySelectorAll('[data-k]').forEach(b => b.setAttribute('aria-pressed', String('v' in b.dataset ? S[b.dataset.k] == b.dataset.v : !!S[b.dataset.k])));
-    $('#su-lfm').hidden = S.musicSrc !== 'lastfm'; $('#su-spot').hidden = S.musicSrc !== 'spotify'; $('#su-automusic').hidden = S.musicSrc === 'none';
+    $('#su-lfm').hidden = S.musicSrc !== 'lastfm'; $('#su-spot').hidden = S.musicSrc !== 'spotify';
+    $('#su-ntimes').hidden = !S.nightMode || S.nightMode === 'off'; $('#su-pinrow').hidden = !S.pinOn; if(!S.pinOn) $('#su-pinhint').hidden = true;
   };
-  su.addEventListener('click', e => { const b = e.target.closest('[data-k]'); if(!b) return; const k = b.dataset.k, v = b.dataset.v; S[k] = 'v' in b.dataset ? (v !== '' && !isNaN(+v) ? +v : v) : !S[k]; paint(); });
-  const clk = () => { const c = $('#su-clock'); if(c) c.textContent = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }); };
+  su.addEventListener('click', e => { const b = e.target.closest('[data-k]'); if(!b) return; const k = b.dataset.k, v = b.dataset.v; S[k] = 'v' in b.dataset ? (v !== '' && !isNaN(+v) ? +v : v) : !S[k]; if(k === 'tempU' || k === 'windU' || k === 'hour12') S._uTouched = true; if((k === 'textSize' || k === 'contrast') && window.applyA11y) applyA11y(S); if(k === 'pinOn' && S.pinOn) setTimeout(() => $('#su-pin').focus(), 50); paint(); });
+  const clk = () => { const c = $('#su-clock'); if(c) { const d = new Date(); c.textContent = HH(d) + ':' + String(d.getMinutes()).padStart(2, '0'); } };
   let cityPicked = false;
   const whereUpd = () => { $('#su-where').textContent = cityPicked ? CITY.name : ''; $('#su-wherebox').hidden = !cityPicked; if(cityPicked) $('#su-cityhint').hidden = true; };
   setInterval(() => { if(!su.hidden) clk(); }, 1000);
@@ -3996,17 +4345,25 @@ $('#set').addEventListener('click', () => {
     [...dots.children].forEach((d, j) => d.classList.toggle('on', j === n));
     $('#su-back').style.visibility = n && n < steps.length - 1 ? 'visible' : 'hidden';
     $('#su-next').textContent = n === 0 ? 'Continue · Tovább' : n === steps.length - 1 ? 'Start' : 'Continue';
+    sideUpd();
   };
   const langPaint = () => su.querySelectorAll('[data-lang]').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.lang === LANG)));
   su.addEventListener('click', e => { const b = e.target.closest('[data-lang]'); if(!b) return; setLang(b.dataset.lang); langPaint(); });
   window.openSetup = () => {
-    S = { secs: cfg.secs, fade: cfg.fade, showExif: cfg.showExif !== false, live: cfg.live, anim: cfg.anim !== false, dynViews: cfg.dynViews !== false, autoMusic: cfg.autoMusic !== false, keepPhotos: cfg.keepPhotos !== false, nightDim: cfg.dimMode ? cfg.dimMode !== 'off' : !cfg.setup,
-      perf: cfg.perf || 'auto', deviceType: cfg.deviceType || '', themeMatch: !!cfg.themeMatch, musicSrc: cfg.musicSrc || (cfg.key ? 'lastfm' : cfg.setup ? 'lastfm' : 'lastfm'), beat: cfg.beat !== false, trans: cfg.trans || 'fade', tilePotd: cfg.tilePotd || 'photos', seasonal: cfg.seasonal !== false, edgeSwipe: cfg.edgeSwipe !== false, wxWarn: cfg.wxWarn !== false };
+    S = { secs: cfg.secs, fade: cfg.fade, showExif: cfg.showExif !== false, live: cfg.live, anim: cfg.anim !== false, dynViews: cfg.dynViews !== false, autoMusic: cfg.autoMusic !== false, keepPhotos: cfg.keepPhotos !== false, dimMode: cfg.setup ? (cfg.dimMode || 'off') : 'sun', nightMode: cfg.nightMode || 'off', textSize: cfg.textSize === undefined ? 1 : cfg.textSize, contrast: !!cfg.contrast, nameDays: cfg.nameDays !== false, pinOn: !!cfg.pinHash,
+      perf: cfg.perf || 'auto', deviceType: cfg.deviceType || '', themeMatch: !!cfg.themeMatch,
+      ...(cfg.tempU ? { tempU: cfg.tempU, windU: cfg.windU || 'kmh', hour12: cfg.hour12 ? 1 : 0, _uTouched: true } : cfg.setup ? { tempU: 'c', windU: 'kmh', hour12: 0, _uTouched: true } : (window.unitDefaults ? unitDefaults(CITY.cc) : {})), musicSrc: cfg.musicSrc || (cfg.key ? 'lastfm' : cfg.setup ? 'lastfm' : 'lastfm'), beat: cfg.beat !== false, trans: cfg.trans || 'fade', tilePotd: cfg.tilePotd || 'photos', seasonal: cfg.seasonal !== false, edgeSwipe: cfg.edgeSwipe !== false, wxWarn: cfg.wxWarn !== false };
     cityPicked = !!cfg.city; whereUpd(); $('#su-cityhint').hidden = true;
+    /* the device asks for less motion: start with a calm interface */
+    const rm = matchMedia('(prefers-reduced-motion: reduce)').matches; $('#su-motion').hidden = !(rm && !cfg.setup);
+    if(rm && !cfg.setup){ S.anim = false; S.live = 0; }
+    su.querySelectorAll('.apponly').forEach(x => { x.hidden = !isApp(); });
+    $('#su-nfrom').value = cfg.nightFrom || '22:30'; $('#su-nto').value = cfg.nightTo || '07:00'; $('#su-pin').value = ''; $('#su-pinhint').hidden = true;
+    far = 0; setTimeout(() => { if(window.suCountry) suCountry(); if(window.countryOf) countryOf().then(() => window.suCountry && suCountry()); }, 0);
     $('#su-perfinfo').textContent = '';
     const detect = () => window.detectDevice ? detectDevice().then(d => { if(!S.deviceType){ S.deviceType = d.type; paint(); } showDevice(d); }) : setTimeout(detect, 150);
     detect();
-    $('#su-spclient').value = cfg.spClient || ''; $('#su-spredir').value = isApp() ? 'photoframe://spotify' : location.origin + location.pathname;
+    $('#su-spclient').value = cfg.spClient || ''; $('#su-spredir').value = isApp() ? 'photoframe://spotify' : STABLE_URL;
     if(window.spStatusText) $('#su-spstatus').textContent = spStatusText();
     $('#su-user').value = cfg.user || ''; $('#su-key').value = cfg.key || ''; $('#su-city').value = ''; $('#su-res').innerHTML = '';
     $('#su-count').textContent = photos.length ? photos.length + ' photos ready' : '';
@@ -4029,7 +4386,7 @@ $('#set').addEventListener('click', () => {
         (j.results || []).forEach(p => {
           const b = document.createElement('button'); b.className = 'chip'; b.type = 'button';
           b.textContent = [p.name, p.admin1, p.country].filter(Boolean).join(', ');
-          b.onclick = () => { Object.assign(CITY, { name: [p.name, p.country].filter(Boolean).join(', '), lat: p.latitude, lon: p.longitude }); cityPicked = true; whereUpd(); r.innerHTML = ''; $('#su-city').value = ''; };
+          b.onclick = () => { Object.assign(CITY, { name: [p.name, p.country].filter(Boolean).join(', '), lat: p.latitude, lon: p.longitude, cc: String(p.country_code || '').toUpperCase() }); cityPicked = true; if(window.suCountry) suCountry(); whereUpd(); r.innerHTML = ''; $('#su-city').value = ''; };
           r.appendChild(b);
         });
         if(!r.children.length) r.textContent = 'No matches found.';
@@ -4043,13 +4400,14 @@ $('#set').addEventListener('click', () => {
     r.textContent = 'Finding your location…';
     navigator.geolocation.getCurrentPosition(async pos => {
       const lat = +pos.coords.latitude.toFixed(4), lon = +pos.coords.longitude.toFixed(4);
-      let name = 'My location';
+      let name = 'My location', cc = '';
       try {
         const j = await (await fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + lat + '&longitude=' + lon + '&localityLanguage=' + LANG)).json();
         const place = j.city || j.locality || (j.principalSubdivision || '');
         if(place) name = [place, j.countryName].filter(Boolean).join(', ');
+        cc = String(j.countryCode || '').toUpperCase();
       } catch {}
-      Object.assign(CITY, { name, lat, lon }); cityPicked = true; whereUpd(); r.innerHTML = '';
+      Object.assign(CITY, { name, lat, lon, cc }); cityPicked = true; whereUpd(); r.innerHTML = ''; if(window.suCountry) suCountry();
     }, () => { r.textContent = 'Location access was refused or failed. Search for your city instead.'; }, { timeout: 15000, maximumAge: 600000 });
   };
   $('#su-pick').onclick = () => $('#files').click();
@@ -4057,17 +4415,20 @@ $('#set').addEventListener('click', () => {
   /* saves everything chosen so far (also used before leaving for the Spotify login) */
   function commit(done){
     Object.assign(cfg, S, { lang: LANG, user: $('#su-user').value.trim(), key: $('#su-key').value.trim(), spClient: $('#su-spclient').value.trim() });
-    if(cityPicked) cfg.city = { name: CITY.name, lat: CITY.lat, lon: CITY.lon };
+    if(cityPicked) cfg.city = { name: CITY.name, lat: CITY.lat, lon: CITY.lon, cc: CITY.cc || '' };
     if(done) cfg.setup = 1;
-    applyPerf();
+    cfg.nightFrom = $('#su-nfrom').value || '22:30'; cfg.nightTo = $('#su-nto').value || '07:00';
+    if(done){ const pin = $('#su-pin').value.trim(); if(S.pinOn && /^\d{4}$/.test(pin) && window.setPin) setPin(pin); else if(!S.pinOn){ delete cfg.pinHash; delete cfg.pinSalt; } }
+    delete cfg.pinOn; delete cfg._uTouched;
+    applyPerf(); if(window.applyA11y) applyA11y();
   }
-  window.setupCommit = () => { commit(false); if(suBg) commitBg(suBg); if(suWx) commitWx(suWx); const nd = cfg.nightDim; cfg.dimMode = nd ? (cfg.dimMode && cfg.dimMode !== 'off' ? cfg.dimMode : 'sun') : 'off'; delete cfg.nightDim; try { localStorage.setItem('pf', JSON.stringify(cfg)); } catch {} };
+  window.setupCommit = () => { commit(false); if(suBg) commitBg(suBg); if(suWx) commitWx(suWx); delete cfg.nightDim; try { localStorage.setItem('pf', JSON.stringify(cfg)); } catch {} };
   window.setupShow = i => { if(su.hidden) openSetup(); show(Math.max(0, Math.min(steps.length - 1, i))); };
   window.setupStep = () => n;
   function finish(){
     commit(true);
     if(suBg) commitBg(suBg);
-    cfg.dimMode = cfg.nightDim ? (cfg.dimMode && cfg.dimMode !== 'off' ? cfg.dimMode : 'sun') : 'off'; delete cfg.nightDim;
+    delete cfg.nightDim;
     if(cfg.keepPhotos === false && window.photoStore) photoStore.clear();
     if(suWx) commitWx(suWx);
     try { localStorage.setItem('pf', JSON.stringify(cfg)); } catch {}
@@ -4078,11 +4439,19 @@ $('#set').addEventListener('click', () => {
     openHome(); su.classList.remove('on'); setTimeout(() => { su.hidden = true; }, 700);
   }
   $('#su-back').onclick = () => { if(n) show(n - 1); };
-  $('#su-next').onclick = () => {
+  const nudge = (h, f) => { h.hidden = false; h.classList.remove('shake'); void h.offsetWidth; h.classList.add('shake'); if(f) f.focus(); };
+  function canLeave(){
     /* a city has to be chosen on the weather step */
-    if(steps[n].dataset.step === 'weather' && !cityPicked){ const h = $('#su-cityhint'); h.hidden = false; h.classList.remove('shake'); void h.offsetWidth; h.classList.add('shake'); $('#su-city').focus(); return; }
+    if(steps[n].dataset.step === 'weather' && !cityPicked){ nudge($('#su-cityhint'), $('#su-city')); return false; }
+    if(steps[n].dataset.step === 'extras' && S.pinOn && !/^\d{4}$/.test($('#su-pin').value.trim())){ nudge($('#su-pinhint'), $('#su-pin')); return false; }
+    return true;
+  }
+  $('#su-next').onclick = () => {
+    if(!canLeave()) return;
     n < steps.length - 1 ? show(n + 1) : finish();
   };
+  $('#su-restore').onclick = () => { if(window.openRestore) openRestore(); };
+  $('#su-pin').oninput = e => { e.target.value = e.target.value.replace(/\D/g, '').slice(0, 4); };
   addEventListener('keydown', e => { if(!su.hidden) e.stopImmediatePropagation(); }, true);
   $('#redo').onclick = () => openSetup();
   $('#redo2').onclick = () => { $('#dlg').close(); closeHome(); openSetup(); };
@@ -4097,7 +4466,7 @@ $('#set').addEventListener('click', () => {
   const upd = () => {
     if(hm.hidden) return;
     const d = new Date(), h = d.getHours();
-    setText($('#hm-t'), d.toLocaleTimeString(LOC, { hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }));
+    setText($('#hm-t'), HH(d) + ':' + String(d.getMinutes()).padStart(2, '0'));
     setText($('#hm-d'), (h < 5 ? 'Good night' : h < 12 ? 'Good morning' : h < 18 ? 'Good afternoon' : 'Good evening') + ' · ' + d.toLocaleDateString(LOC, { weekday: 'long', day: 'numeric', month: 'long' }));
     const pu = window.potdUrl ? potdUrl() : '';
     setText($('#hm-ph'), pu && ph.url === pu ? 'Picture of the day' : photos.length ? photos.length + ' photos' : 'Choose a folder');
@@ -4274,13 +4643,13 @@ $('#set').addEventListener('click', () => {
   const PH = ['', 'five past', 'ten past', 'quarter past', 'twenty past', 'twenty-five past', 'half past', 'twenty-five to', 'twenty to', 'quarter to', 'ten to', 'five to'];
   const faces = [
     { n: 'Minimal', b: () => '<div class="f1"><div class="t"></div><div class="bar"><i></i></div><div class="d"></div></div>',
-      t(d){ st(q('.t'), pad(d.getHours()) + ':' + pad(d.getMinutes())); const s = d.getSeconds(), i = q('.bar i'); i.style.transition = s === 0 ? 'none' : ''; i.style.width = (s + d.getMilliseconds() / 1000) / 60 * 100 + '%'; st(q('.d'), DAY(d)); } },
+      t(d){ st(q('.t'), HH(d) + ':' + pad(d.getMinutes())); const s = d.getSeconds(), i = q('.bar i'); i.style.transition = s === 0 ? 'none' : ''; i.style.width = (s + d.getMilliseconds() / 1000) / 60 * 100 + '%'; st(q('.d'), DAY(d)); } },
     { n: 'Analog', b: () => { let k = ''; for(let i = 0; i < 60; i++){ const m = i % 5 === 0; k += '<line x1="200" y1="' + (m ? 16 : 26) + '" x2="200" y2="40" transform="rotate(' + i * 6 + ' 200 200)" class="tk' + (m ? ' m' : '') + '"/>'; }
         return '<svg class="f2" viewBox="0 0 400 400"><circle cx="200" cy="200" r="190" class="rim"/>' + k + '<g class="hh"><line x1="200" y1="200" x2="200" y2="110"/></g><g class="mh"><line x1="200" y1="210" x2="200" y2="62"/></g><g class="sh"><line x1="200" y1="226" x2="200" y2="40"/><circle cx="200" cy="200" r="6"/></g><circle cx="200" cy="200" r="2.5" class="cap"/></svg>'; },
       t(d){ const h = d.getHours() % 12, m = d.getMinutes(), s = d.getSeconds(), r = (c, a) => { q(c).style.transform = 'rotate(' + a + 'deg)'; };
         r('.hh', unwrap('h', h * 30 + m * .5)); r('.mh', unwrap('m', m * 6 + s * .1)); r('.sh', unwrap('s', (s + 1) * 6)); } },
     { n: 'Stacked', b: () => '<div class="f3"><div class="h"></div><div class="m"></div><div class="d"></div></div>',
-      t(d){ st(q('.h'), pad(d.getHours())); st(q('.m'), pad(d.getMinutes())); st(q('.d'), d.toLocaleDateString(LOC, { weekday: 'long' }) + ' · ' + d.toLocaleDateString(LOC, { day: 'numeric', month: 'short' })); } },
+      t(d){ st(q('.h'), HH(d)); st(q('.m'), pad(d.getMinutes())); st(q('.d'), d.toLocaleDateString(LOC, { weekday: 'long' }) + ' · ' + d.toLocaleDateString(LOC, { day: 'numeric', month: 'short' })); } },
     { n: 'Rings', b: () => { const R = [[186, 'rs'], [160, 'rm'], [134, 'rh']];
         return '<div class="f4"><svg viewBox="0 0 400 400">' + R.map(([r, c]) => { const C = (2 * Math.PI * r).toFixed(1); return '<circle class="tr" cx="200" cy="200" r="' + r + '"/><circle class="' + c + '" cx="200" cy="200" r="' + r + '" stroke-dasharray="' + C + '" stroke-dashoffset="' + C + '" data-c="' + C + '"/>'; }).join('') + '</svg><div class="c"><div class="t"></div><div class="d"></div></div></div>'; },
       t(d){ const h = d.getHours(), m = d.getMinutes(), s = d.getSeconds() + d.getMilliseconds() / 1000;
@@ -4323,7 +4692,7 @@ $('#set').addEventListener('click', () => {
     /* Flip: split-flap cards that fold over when a digit changes */
     { n: 'Flip', b: () => '<div class="f6"><div class="fl"><b></b><b></b><i>:</i><b></b><b></b></div><div class="sub"><span class="d"></span><span class="s"></span></div></div>',
       t(d){
-        const s = pad(d.getHours()) + pad(d.getMinutes());
+        const s = HH2(d) + pad(d.getMinutes());
         fc.querySelectorAll('.fl b').forEach((el, i) => {
           const c = s[i]; if(el.dataset.v === c) return;
           const first = el.dataset.v === undefined; el.dataset.v = c;
@@ -4371,7 +4740,7 @@ $('#set').addEventListener('click', () => {
         const hand = q('.hand'); hand.setAttribute('x1', h0x); hand.setAttribute('y1', h0y); hand.setAttribute('x2', hx); hand.setAttribute('y2', hy);
         const o = q('.orb'); o.setAttribute('cx', ox); o.setAttribute('cy', oy); o.setAttribute('fill', isDay ? '#ffe7a3' : '#cfdcff');
         o.style.filter = isDay ? 'drop-shadow(0 0 12px #ffb347)' : 'drop-shadow(0 0 10px #8fb0ff)';
-        st(q('.t'), pad(d.getHours()) + ':' + pad(d.getMinutes()));
+        st(q('.t'), HH(d) + ':' + pad(d.getMinutes()));
         const dur = m => { m = Math.max(0, Math.round(m)); const h = m / 60 | 0; return (h ? h + 'h ' : '') + (m % 60) + 'm'; };
         st(q('.st'), now < sr ? 'Sunrise in ' + dur(sr - now) : now <= ss ? 'Sunset in ' + dur(ss - now) : 'Sunrise in ' + dur(sr + 1440 - now));
         st(q('.rs'), 'Daylight ' + dur(ss - sr));
@@ -4380,7 +4749,7 @@ $('#set').addEventListener('click', () => {
     /* Tape: a measuring tape of time sliding under a fixed needle */
     { n: 'Tape', b: () => '<div class="f9"><div class="t"></div><canvas></canvas><div class="d"></div></div>',
       t(d){
-        st(q('.t'), pad(d.getHours()) + ':' + pad(d.getMinutes()));
+        st(q('.t'), HH(d) + ':' + pad(d.getMinutes()));
         st(q('.d'), DAY(d));
         if(fc._tape) return;
         const cv = q('canvas'), tok = fc._tape = {};
@@ -4422,7 +4791,7 @@ $('#set').addEventListener('click', () => {
         const F = { 0: ['01110','10001','10011','10101','11001','10001','01110'], 1: ['00100','01100','00100','00100','00100','00100','01110'], 2: ['01110','10001','00001','00010','00100','01000','11111'],
           3: ['11111','00010','00100','00010','00001','10001','01110'], 4: ['00010','00110','01010','10010','11111','00010','00010'], 5: ['11111','10000','11110','00001','00001','10001','01110'],
           6: ['00110','01000','10000','11110','10001','10001','01110'], 7: ['11111','00001','00010','00100','01000','01000','01000'], 8: ['01110','10001','10001','01110','10001','10001','01110'], 9: ['01110','10001','10001','01111','00001','00010','01100'] };
-        const s = pad(d.getHours()) + pad(d.getMinutes()), on = d.getMilliseconds() < 500, grid = Array.from({ length: 7 }, () => Array(25).fill(0));
+        const s = HH2(d) + pad(d.getMinutes()), on = d.getMilliseconds() < 500, grid = Array.from({ length: 7 }, () => Array(25).fill(0));
         [0, 6, 14, 20].forEach((x0, k) => F[s[k]].forEach((row, y) => [...row].forEach((b, x) => { if(b === '1') grid[y][x0 + x] = 1; })));
         if(on){ grid[2][12] = 1; grid[4][12] = 1; }
         const key = grid.map(r => r.join('')).join('');
@@ -4443,7 +4812,7 @@ $('#set').addEventListener('click', () => {
         let dh = h1 - h0; if(dh > 180) dh -= 360; if(dh < -180) dh += 360;
         const hue = Math.round((h0 + dh * t + 360) % 360);
         q('.au').style.setProperty('--h', hue);
-        st(q('.t'), pad(d.getHours()) + ':' + pad(d.getMinutes()));
+        st(q('.t'), HH(d) + ':' + pad(d.getMinutes()));
         st(q('.d'), DAY(d));
         const hr = d.getHours();
         st(q('.mood'), hr < 5 ? 'Deep night' : hr < 8 ? 'Dawn' : hr < 11 ? 'Morning' : hr < 14 ? 'Midday' : hr < 17 ? 'Afternoon' : hr < 20 ? 'Golden evening' : 'Night');
@@ -4451,11 +4820,12 @@ $('#set').addEventListener('click', () => {
 
     /* Night (red): a big, dim red clock that does not light up a dark bedroom */
     { n: 'Night (red)', red: true, b: () => '<div class="f12"><div class="t"></div><div class="d"></div></div>',
-      t(d){ st(q('.t'), pad(d.getHours()) + ':' + pad(d.getMinutes())); st(q('.d'), DAY(d)); } }
+      t(d){ st(q('.t'), HH(d) + ':' + pad(d.getMinutes())); st(q('.d'), DAY(d)); } }
   ];
   const ckTile = document.querySelector('.t-ck small'); if(ckTile) ckTile.textContent = faces.length + ' clock faces';
   dots.innerHTML = faces.map(() => '<b></b>').join('');
   const cur = () => ((cfg.face | 0) % faces.length + faces.length) % faces.length;
+  window.clockFaceIndex = n => faces.findIndex(f => f.n === n);
   const setFace = i => {
     i = (i + faces.length) % faces.length; cfg.face = i;
     try { localStorage.setItem('pf', JSON.stringify(cfg)); } catch {}
@@ -4506,7 +4876,7 @@ const el = h => { const t = document.createElement('template'); t.innerHTML = h.
 const hm2m = s => { const [a, b] = String(s || '0:0').split(':'); return (+a || 0) * 60 + (+b || 0); };
 const fmtT = d => d.toLocaleTimeString(LOC, { hour: '2-digit', minute: '2-digit' });
 const sleep = ms => new Promise(r => setTimeout(r, ms));
-const inHungary = () => /hungary|magyarorsz/i.test(CITY.name || '');
+const inHungary = () => CITY.cc ? CITY.cc === 'HU' : /hungary|magyarorsz/i.test(CITY.name || '');
 
 const DEF = { tilePotd: 'photos', keepPhotos: true, pairPortraits: true, potd: true, trans: 'fade', dimMode: 'off', dimFrom: '22:00', dimTo: '07:00', dimLevel: 60, wxWarn: true, seasonal: true, edgeSwipe: true, icalUrl: '', icalProxy: '' };
 for(const k in DEF) if(cfg[k] === undefined) cfg[k] = DEF[k];
@@ -4683,6 +5053,7 @@ function dimTarget(){
 function dimTick(){
   let v = dimTarget();
   if(Date.now() < boostUntil) v *= .2;
+  if(window.nightDark && nightDark()) v = Math.max(v, .99);
   if(!$('#ring').hidden) v = 0;
   curDim = v;
   if(isApp() && natDim){
@@ -4934,9 +5305,9 @@ function computeWarnings(){
   const i0 = Math.max(0, H.time.indexOf(up[0].time)), N = Math.min(H.time.length, i0 + 24);
   const A = k => (H[k] || []).slice(i0, N).map(v => +v || 0);
   const gust = A('wind_gusts_10m'), pr = A('precipitation'), sn = A('snowfall'), code = A('weather_code'), tt = A('temperature_2m'), tm = H.time.slice(i0, N);
-  const at = j => j <= 0 ? 'now' : tm[j].slice(11, 16), out = [];
+  const at = j => j <= 0 ? 'now' : hmFmt(tm[j].slice(11, 16)), out = [];
   const gmax = Math.max(0, ...gust);
-  if(gmax >= 60) out.push({ k: 'wind', ic: 'wind', lv: gmax >= 100 ? 3 : gmax >= 80 ? 2 : 1, t: `Strong wind gusts up to ${Math.round(gmax)} km/h`, at: at(gust.findIndex(g => g >= 60)) });
+  if(gmax >= 60) out.push({ k: 'wind', ic: 'wind', lv: gmax >= 100 ? 3 : gmax >= 80 ? 2 : 1, t: `Strong wind gusts up to ${Math.round(wU(gmax))} ${WUN()}`, at: at(gust.findIndex(g => g >= 60)) });
   let r6 = 0, rj = 0; for(let j = 0; j < pr.length; j++){ const s = pr.slice(j, j + 6).reduce((a, b) => a + b, 0); if(s > r6){ r6 = s; rj = j; } }
   if(r6 >= 15) out.push({ k: 'rain', ic: 'rain', lv: r6 >= 40 ? 3 : r6 >= 25 ? 2 : 1, t: `Heavy rain, about ${Math.round(r6)} mm in 6 hours`, at: at(rj) });
   const s24 = sn.reduce((a, b) => a + b, 0);
@@ -4946,8 +5317,8 @@ function computeWarnings(){
   const jf = code.findIndex(c => c === 56 || c === 57 || c === 66 || c === 67);
   if(jf >= 0) out.push({ k: 'ice', ic: 'drizzle', lv: 2, t: 'Freezing rain (icy roads and pavements)', at: at(jf) });
   const tmax = Math.max(...tt), tmin = Math.min(...tt);
-  if(tmax >= 30) out.push({ k: 'heat', ic: 'thermo', lv: tmax >= 37 ? 3 : tmax >= 34 ? 2 : 1, t: `Heat, up to ${Math.round(tmax)}°`, at: at(tt.indexOf(tmax)) });
-  if(tmin <= -10) out.push({ k: 'cold', ic: 'thermo', lv: tmin <= -20 ? 3 : tmin <= -15 ? 2 : 1, t: `Severe cold, down to ${Math.round(tmin)}°`, at: at(tt.indexOf(tmin)) });
+  if(tmax >= 30) out.push({ k: 'heat', ic: 'thermo', lv: tmax >= 37 ? 3 : tmax >= 34 ? 2 : 1, t: `Heat, up to ${Math.round(cU(tmax))}°`, at: at(tt.indexOf(tmax)) });
+  if(tmin <= -10) out.push({ k: 'cold', ic: 'thermo', lv: tmin <= -20 ? 3 : tmin <= -15 ? 2 : 1, t: `Severe cold, down to ${Math.round(cU(tmin))}°`, at: at(tt.indexOf(tmin)) });
   let run = 0, jfog = -1; for(let j = 0; j < code.length; j++){ if(code[j] === 45 || code[j] === 48){ if(++run >= 3 && jfog < 0) jfog = j - 2; } else run = 0; }
   if(jfog >= 0) out.push({ k: 'fog', ic: 'fog', lv: 1, t: 'Dense fog', at: at(jfog) });
   /* official warnings replace forecast ones of the same kind */
@@ -4967,7 +5338,8 @@ function renderWarnings(){
   });
   if(warnings.length){
     const n = el('<div class="wwnote"></div>'), shown = warnings.slice(0, 2), anyOff = shown.some(w => w.official), anyFc = shown.some(w => !w.official);
-    const src = anyOff && anyFc ? 'Official HungaroMet warnings and forecast-based ones' : anyOff ? 'Official warnings from HungaroMet' : 'Based on the forecast, not official warnings';
+    const on = window.warnSource || 'HungaroMet';
+    const src = anyOff && anyFc ? `Official warnings (${on}) and forecast-based ones` : anyOff ? `Official warnings from ${on}` : 'Based on the forecast, not official warnings';
     n.textContent = (warnings.length > 2 ? '+' + (warnings.length - 2) + ' more · ' : '') + src; wbox.appendChild(n);
   }
   const top = warnings[0];
@@ -5167,7 +5539,25 @@ window.screenSwipe = dx => {
 
 /* ---------------------------------------------------------------- seasonal touches */
 function easter(y){ const a = y % 19, b = y / 100 | 0, c = y % 100, d = b / 4 | 0, e = b % 4, f = (b + 8) / 25 | 0, g = (b - f + 1) / 3 | 0, h = (19 * a + b - d - g + 15) % 30, i = c / 4 | 0, k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = (a + 11 * h + 22 * l) / 451 | 0, mo = (h + l - 7 * m + 114) / 31 | 0, da = (h + l - 7 * m + 114) % 31 + 1; return new Date(y, mo - 1, da); }
+/* v43: public holidays of the chosen country (Nager.Date); Hungary keeps the built-in list, which also works offline */
+let holList = jget('pf-hol', null);
+async function loadHolidays(){
+  const cc = await countryOf(), y = new Date().getFullYear();
+  if(!cc || cc === 'HU' || (holList && holList.cc === cc && holList.y === y)) return;
+  try {
+    const j = await (await fetch('https://date.nager.at/api/v3/PublicHolidays/' + y + '/' + cc)).json();
+    if(Array.isArray(j)){ holList = { cc, y, list: j.filter(h => h.global !== false).map(h => ({ d: h.date, n: h.name })) }; jset('pf-hol', holList); }
+  } catch {}
+}
 function holiday(d){
+  const cc = CITY.cc || (inHungary() ? 'HU' : '');
+  if(!cc || cc === 'HU') return holidayHU(d);
+  const iso = d.getFullYear() + '-' + p2(d.getMonth() + 1) + '-' + p2(d.getDate());
+  const h = holList && holList.cc === cc && holList.list.find(x => x.d === iso);
+  if(h) return h.n;
+  return { '02-14': "Valentine's Day", '10-31': 'Halloween', '12-24': 'Christmas Eve', '12-31': "New Year's Eve" }[iso.slice(5)] || '';
+}
+function holidayHU(d){
   const y = d.getFullYear(), md = p2(d.getMonth() + 1) + '-' + p2(d.getDate()), same = (a, b) => a.toDateString() === b.toDateString();
   const E = easter(y), F = {
     '01-01': "New Year's Day", '02-14': "Valentine's Day", '03-15': 'National Day (1848 Revolution)', '05-01': 'Labour Day', '08-20': "St Stephen's Day",
@@ -5181,22 +5571,27 @@ function holiday(d){
   if(d.getMonth() === 4 && d.getDay() === 0 && d.getDate() <= 7) return "Mother's Day";
   return F[md] || '';
 }
+/* name days for the countries abalin.net covers (the "ru" entry is not a name list, so it is never used) */
+const ND_CC = ['at', 'bg', 'cz', 'de', 'dk', 'ee', 'es', 'fi', 'fr', 'gr', 'hr', 'hu', 'it', 'lt', 'lv', 'pl', 'se', 'sk', 'us'];
+const ndKey = () => { const cc = (CITY.cc || (inHungary() ? 'HU' : '')).toLowerCase(); return ND_CC.includes(cc) ? cc : LANG === 'hu' ? 'hu' : ''; };
+window.nameDaysAvailable = () => !!ndKey();
 async function nameDay(){
-  const d = new Date(), key = p2(d.getMonth() + 1) + '-' + p2(d.getDate());
-  const c = jget('pf-nd', null);
-  if(c && c.d === key) return c.hu;
-  try {
-    const j = await (await fetch('https://nameday.abalin.net/api/V2/date?day=' + d.getDate() + '&month=' + (d.getMonth() + 1))).json();
-    const hu = (j.data && j.data.hu) || '';
-    jset('pf-nd', { d: key, hu }); return hu;
-  } catch { return ''; }
+  const d = new Date(), key = p2(d.getMonth() + 1) + '-' + p2(d.getDate()), k = ndKey();
+  if(!k) return '';
+  let c = jget('pf-nd2', null);
+  if(!c || c.d !== key){
+    try { const j = await (await fetch('https://nameday.abalin.net/api/V2/date?day=' + d.getDate() + '&month=' + (d.getMonth() + 1))).json(); c = { d: key, data: j.data || {} }; jset('pf-nd2', c); }
+    catch { return ''; }
+  }
+  return c.data[k] || '';
 }
 let ndCache = '';
 async function renderSeason(){
   const x = $('#hm-x');
   if(cfg.seasonal === false){ x.innerHTML = ''; return; }
+  await countryOf(); await loadHolidays();
   const hol = holiday(new Date());
-  if(LANG === 'hu' || inHungary()){ const nd = await nameDay(); ndCache = nd ? nd.split(/[\s,]+/).filter(Boolean).join(', ') : ''; } else ndCache = '';
+  if(cfg.nameDays !== false){ const nd = await nameDay(); ndCache = nd ? nd.split(/,\s*/).filter(Boolean).join(', ') : ''; } else ndCache = '';
   x.innerHTML = '';
   if(hol){ const h = el(`<span class="hol">${ic('star')}<span></span></span>`); h.querySelector('span').textContent = hol; x.appendChild(h); }
   if(ndCache){ const s = document.createElement('span'); s.textContent = 'Name day: ' + ndCache; x.appendChild(s); }
@@ -5204,11 +5599,12 @@ async function renderSeason(){
 let lastSeasonDay = '';
 setInterval(() => { const k = new Date().toDateString(); if(k !== lastSeasonDay){ lastSeasonDay = k; renderSeason(); } }, 30000);
 renderSeason(); lastSeasonDay = new Date().toDateString();
+document.addEventListener('placechange', renderSeason); document.addEventListener('cfgchange', renderSeason); $('#save').addEventListener('click', () => setTimeout(renderSeason, 300));
 
 /* December snow over the photos and the Home screen */
 const snow = el('<canvas id="snowfx"></canvas>'); document.body.appendChild(snow);
 let flakes = [], snowRaf = 0, snowLast = 0;
-const snowSeason = () => { const d = new Date(); return d.getMonth() === 11 || (d.getMonth() === 0 && d.getDate() <= 6); };
+const snowSeason = () => { const d = new Date(); return CITY.lat >= 0 && (d.getMonth() === 11 || (d.getMonth() === 0 && d.getDate() <= 6)); };  /* no December snow in the southern hemisphere */
 const snowWanted = () => cfg.seasonal !== false && snowSeason() && !calm() && !document.hidden && !awayMode && $('#setup').hidden && $('#clockscr').hidden && $('#ring').hidden && (!$('#home').hidden || view === 'photos');
 function snowFrame(now){
   if(!snowWanted()){ snowRaf = 0; snow.getContext('2d').clearRect(0, 0, snow.width, snow.height); return; }
@@ -5390,7 +5786,7 @@ const beatEl = document.createElement('b'); beatEl.className = 'beatfx'; $('#bga
 
 /* ---------------------------------------------------------------- Spotify (Authorization Code + PKCE, no server needed) */
 const SP = { tok: jget('pf-sp', null), pending: null, prog: null, item: null, busy: false, err: '' };
-const spRedirect = () => isApp() ? 'photoframe://spotify' : location.origin + location.pathname;
+const spRedirect = () => isApp() ? 'photoframe://spotify' : STABLE_URL;
 const spReady = () => !!(SP.tok && SP.tok.refresh && cfg.spClient);
 const spOn = () => cfg.musicSrc === 'spotify' && spReady();
 window.spStatusText = () => spReady() ? 'Connected' : cfg.spClient ? 'Not connected yet' : '';
@@ -5652,7 +6048,7 @@ window.dbgMusic = () => ({ source: cfg.musicSrc, spotifyReady: spReady(), tokenE
    v38.1: debug mode – technical information on every screen
    ===================================================================== */
 (() => {
-const VERSION = 'v42' + (isApp() ? ' (app)' : '');
+const VERSION = 'v43' + (isApp() ? ' (app)' : '') + (window.FRAME_CHANNEL === 'beta' ? ' beta' : '');
 const hud = document.createElement('div'); hud.id = 'dbg'; hud.hidden = true; hud.setAttribute('data-nt', '');
 document.body.appendChild(hud);
 const t0 = Date.now();
@@ -5753,7 +6149,7 @@ apply();
         (j.results || []).forEach(p => {
           const b = document.createElement('button'); b.className = 'chip'; b.type = 'button';
           b.textContent = [p.name, p.admin1, p.country].filter(Boolean).join(', ');
-          b.onclick = () => { pick = { name: [p.name, p.country].filter(Boolean).join(', '), lat: p.latitude, lon: p.longitude }; $('#setcitycur').textContent = pick.name; r.innerHTML = ''; $('#setcity').value = ''; };
+          b.onclick = () => { pick = { name: [p.name, p.country].filter(Boolean).join(', '), lat: p.latitude, lon: p.longitude, cc: String(p.country_code || '').toUpperCase() }; $('#setcitycur').textContent = pick.name; r.innerHTML = ''; $('#setcity').value = ''; };
           r.appendChild(b);
         });
         if(!r.children.length) r.textContent = 'No matches found.';
@@ -5764,7 +6160,7 @@ apply();
     if(!pick) return;
     Object.assign(CITY, pick); cfg.city = Object.assign({}, pick); pick = null;
     try { localStorage.setItem('pf', JSON.stringify(cfg)); } catch {}
-    weather();
+    weather(); document.dispatchEvent(new Event('placechange'));
   });
 })();
 </script>
@@ -5819,17 +6215,64 @@ async function regionOf(){
 }
 const TYPE = { 'wind': ['wind', 'wind'], 'rain': ['rain', 'rain'], 'snow-ice': ['snow', 'snow'], 'fog': ['fog', 'fog'], 'high-temperature': ['heat', 'thermo'], 'low-temperature': ['cold', 'thermo'], 'thunderstorm': ['storm', 'storm'],
   'coastalevent': ['sea', 'warn'], 'forest-fire': ['fire', 'warn'], 'avalanches': ['snow', 'snow'], 'flooding': ['rain', 'rain'], 'rain-flood': ['rain', 'rain'] };
+/* v43: MeteoAlarm countries (ISO code → feed name) */
+const MA = { AT: 'austria', BE: 'belgium', BA: 'bosnia-herzegovina', BG: 'bulgaria', HR: 'croatia', CY: 'cyprus', CZ: 'czechia', DK: 'denmark', EE: 'estonia', FI: 'finland', FR: 'france', DE: 'germany', GR: 'greece', HU: 'hungary',
+  IS: 'iceland', IE: 'ireland', IL: 'israel', IT: 'italy', LV: 'latvia', LT: 'lithuania', LU: 'luxembourg', MT: 'malta', MD: 'moldova', ME: 'montenegro', NL: 'netherlands', MK: 'republic-of-north-macedonia', NO: 'norway', PL: 'poland',
+  PT: 'portugal', RO: 'romania', RS: 'serbia', SK: 'slovakia', SI: 'slovenia', ES: 'spain', SE: 'sweden', CH: 'switzerland', GB: 'united-kingdom', UA: 'ukraine' };
+const LOCAL_LANG = { AT: 'de', DE: 'de', CH: 'de', LU: 'fr', BE: 'nl', NL: 'nl', FR: 'fr', IT: 'it', ES: 'es', PT: 'pt', PL: 'pl', CZ: 'cs', SK: 'sk', SI: 'sl', HR: 'hr', RS: 'sr', BA: 'bs', ME: 'sr', MK: 'mk', BG: 'bg', RO: 'ro', MD: 'ro', GR: 'el', CY: 'el',
+  DK: 'da', SE: 'sv', NO: 'nb', FI: 'fi', EE: 'et', LV: 'lv', LT: 'lt', IS: 'is', IE: 'en', GB: 'en', MT: 'en', IL: 'he', UA: 'uk' };
+/* place names around the chosen location (English and the local language), simplified for matching warning areas */
+const STOP = /\b(landkreis|kreis|stadtkreis|stadt|kreisfreie|county|district|region|regional|unit|province|provincia|provinz|departement|department|canton|kanton|okres|powiat|wojewodztwo|voivodeship|judetul|judet|zupanija|municipality|gemeinde|bezirk|of|the|city|metropolitan|area|state|land)\b/g;
+const simp = s => nrm(s).replace(/[^a-z0-9 ]+/g, ' ').replace(STOP, ' ').replace(/\s+/g, ' ').trim();
+async function placeNames(cc){
+  const key = CITY.lat + ',' + CITY.lon;
+  if(cfg.city && cfg.city.namesKey === key && Array.isArray(cfg.city.names)) return cfg.city.names;
+  const out = new Set();
+  for(const lg of [...new Set(['en', LOCAL_LANG[cc] || 'en'])]){
+    try {
+      const j = await (await fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude=' + CITY.lat + '&longitude=' + CITY.lon + '&localityLanguage=' + lg)).json();
+      [j.city, j.locality, j.principalSubdivision].concat(((j.localityInfo && j.localityInfo.administrative) || []).filter(a => (a.adminLevel || 9) >= 3).map(a => a.name)).forEach(n => { const v = simp(n || ''); if(v.length >= 3) out.add(v); });
+    } catch {}
+  }
+  const names = [...out];
+  if(cfg.city && names.length){ cfg.city.names = names; cfg.city.namesKey = key; try { localStorage.setItem('pf', JSON.stringify(cfg)); } catch {} }
+  return names;
+}
+const KIND = e => /tornado|thunder|storm(?! surge)/i.test(e) ? ['storm', 'storm'] : /wind|gale|hurricane|tropical/i.test(e) ? ['wind', 'wind'] : /flood|rain/i.test(e) ? ['rain', 'rain'] : /snow|winter|blizzard|ice|sleet/i.test(e) ? ['snow', 'snow']
+  : /heat/i.test(e) ? ['heat', 'thermo'] : /freeze|frost|cold|chill/i.test(e) ? ['cold', 'thermo'] : /fog/i.test(e) ? ['fog', 'fog'] : /fire|red flag/i.test(e) ? ['fire', 'warn'] : ['other', 'warn'];
+/* US: National Weather Service alerts for the exact spot (works in a browser too) */
+async function usWarnings(){
+  const j = await (await fetch('https://api.weather.gov/alerts/active?point=' + (+CITY.lat).toFixed(4) + ',' + (+CITY.lon).toFixed(4), { headers: { Accept: 'application/geo+json' } })).json();
+  const now = Date.now(), soon = now + 24 * 3600000, out = [], seen = new Set();
+  for(const f of j.features || []){
+    const p = f.properties || {}, lv = { Extreme: 3, Severe: 2, Moderate: 1 }[p.severity] || 0;
+    if(!lv) continue;
+    const on = Date.parse(p.onset || p.effective || p.sent), ex = Date.parse(p.ends || p.expires);
+    if(ex < now || on > soon) continue;
+    const t = KIND(p.event || ''), id = t[0] + lv; if(seen.has(id)) continue; seen.add(id);
+    out.push({ k: t[0], ic: t[1], lv, t: p.event || 'Weather warning', at: on <= now ? 'now' : new Date(on).toLocaleTimeString(LOC, { hour: '2-digit', minute: '2-digit' }), official: true });
+  }
+  return out;
+}
 async function officialWarnings(){
-  if(!isApp() || cfg.wxWarn === false) { window.officialWarnings = []; return; }
-  const reg = await regionOf();
-  if(!reg){ window.officialWarnings = []; return; }
+  if(cfg.wxWarn === false) { window.officialWarnings = []; return; }
+  const cc = await countryOf();
+  window.warnSource = cc === 'US' ? 'National Weather Service' : cc === 'HU' ? 'HungaroMet' : 'MeteoAlarm';
   try {
-    const r = await appHttp('https://feeds.meteoalarm.org/api/v1/warnings/feeds-hungary');
+    if(cc === 'US'){ window.officialWarnings = await usWarnings(); document.dispatchEvent(new Event('wxupdate')); return; }
+  } catch { window.officialWarnings = window.officialWarnings || []; return; }
+  /* MeteoAlarm blocks web pages, so this part only works in the Android app */
+  if(!isApp() || !MA[cc]){ window.officialWarnings = []; return; }
+  const reg = cc === 'HU' ? await regionOf() : '', names = cc === 'HU' ? [] : await placeNames(cc);
+  if(cc === 'HU' ? !reg : !names.length){ window.officialWarnings = []; return; }
+  const inArea = a => cc === 'HU' ? (a.geocode || []).some(g => g.value === reg) : (v => v.length >= 3 && names.some(n => n === v || (' ' + n + ' ').includes(' ' + v + ' ') || (' ' + v + ' ').includes(' ' + n + ' ')))(simp(a.areaDesc || ''));
+  try {
+    const r = await appHttp('https://feeds.meteoalarm.org/api/v1/warnings/feeds-' + MA[cc]);
     const d = JSON.parse(r.text), now = Date.now(), soon = now + 24 * 3600000, out = [], seen = new Set();
     for(const w of d.warnings || []){
       const infos = (w.alert && w.alert.info) || [];
       const inf = infos.find(i => (i.language || '').startsWith(LANG === 'hu' ? 'hu' : 'en')) || infos[0];
-      if(!inf || !(inf.area || []).some(a => (a.geocode || []).some(g => g.value === reg))) continue;
+      if(!inf || !(inf.area || []).some(inArea)) continue;
       const p = {}; (inf.parameter || []).forEach(x => p[x.valueName] = x.value);
       const level = parseInt(p.awareness_level, 10) || 1;
       if(level < 2) continue;
@@ -5838,17 +6281,16 @@ async function officialWarnings(){
       const type = String(p.awareness_type || '').split(';')[1] || ''; const t = TYPE[type.trim().toLowerCase()] || ['other', 'warn'];
       const id = t[0] + level; if(seen.has(id)) continue; seen.add(id);
       const txt = (inf.event || inf.headline || '').replace(/^./, c => c.toUpperCase());
-      out.push({ k: t[0], ic: t[1], lv: Math.min(3, level - 1), t: txt, at: on <= now ? 'now' : new Date(on).toTimeString().slice(0, 5), official: true });
+      out.push({ k: t[0], ic: t[1], lv: Math.min(3, level - 1), t: txt, at: on <= now ? 'now' : new Date(on).toLocaleTimeString(LOC, { hour: '2-digit', minute: '2-digit' }), official: true });
     }
     window.officialWarnings = out;
   } catch { window.officialWarnings = window.officialWarnings || []; }
   document.dispatchEvent(new Event('wxupdate'));
 }
-if(isApp()){
-  setTimeout(officialWarnings, 5000);
-  setInterval(officialWarnings, 30 * 60000);
-  $('#save').addEventListener('click', () => setTimeout(officialWarnings, 1500));
-}
+setTimeout(officialWarnings, 5000);
+setInterval(officialWarnings, 30 * 60000);
+$('#save').addEventListener('click', () => setTimeout(officialWarnings, 1500));
+document.addEventListener('placechange', () => setTimeout(officialWarnings, 1000));
 
 /* ---------------- app card: version, updates, start on boot */
 async function appCard(){
@@ -6011,6 +6453,277 @@ $('#setup').addEventListener('click', e => {
 });
 document.addEventListener('cfgchange', () => { applyHomeBg(); applyAccent(); });
 applyAccent();
+})();
+</script>
+<script>
+/* =====================================================================
+   v43: units & region settings, night screen, accessibility, PIN lock,
+   backup & restore, beta updates, "Report a problem"
+   ===================================================================== */
+(() => {
+const toast = m => { const t = $('#toast'); if(!t) return; t.textContent = m; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 3600); };
+const store = () => { try { localStorage.setItem('pf', JSON.stringify(cfg)); } catch {} };
+const jget = (k, d) => { try { const v = JSON.parse(localStorage.getItem(k)); return v == null ? d : v; } catch { return d; } };
+const hm2m = t => { const [a, b] = String(t || '0:0').split(':'); return (+a || 0) * 60 + (+b || 0); };
+const REPO = (() => { const h = location.hostname, seg = location.pathname.split('/').filter(Boolean)[0];
+  return /\.github\.io$/.test(h) && seg ? 'https://github.com/' + h.split('.')[0] + '/' + seg : 'https://github.com/l1vef4stdieyoung/photo-frame'; })();
+const openLink = url => { if(isApp()) nat('openUrl', { url }).catch(() => window.open(url, '_blank')); else window.open(url, '_blank', 'noopener'); };
+
+/* ---------------- units: suggestions from the country (or the browser's region) */
+const F_CC = ['US', 'LR', 'MM', 'BS', 'BZ', 'KY', 'PW', 'FM', 'MH'], MPH_CC = ['US', 'GB', 'LR', 'MM'], H12_CC = ['US', 'CA', 'AU', 'NZ', 'IN', 'PH', 'PK', 'BD', 'EG', 'SA', 'MY', 'MX', 'CO'];
+window.unitDefaults = cc => {
+  if(!cc){ try { cc = (new Intl.Locale(navigator.language).maximize().region || '').toUpperCase(); } catch { cc = ''; } }
+  return { tempU: F_CC.includes(cc) ? 'f' : 'c', windU: MPH_CC.includes(cc) ? 'mph' : 'kmh', hour12: H12_CC.includes(cc) ? 1 : 0 };
+};
+/* what this country gets: holidays, name days, official warnings */
+const ND = ['AT', 'BG', 'CZ', 'DE', 'DK', 'EE', 'ES', 'FI', 'FR', 'GR', 'HR', 'HU', 'IT', 'LT', 'LV', 'PL', 'SE', 'SK', 'US'];
+const MA = ['AT', 'BE', 'BA', 'BG', 'HR', 'CY', 'CZ', 'DK', 'EE', 'FI', 'FR', 'DE', 'GR', 'HU', 'IS', 'IE', 'IL', 'IT', 'LV', 'LT', 'LU', 'MT', 'MD', 'ME', 'NL', 'MK', 'NO', 'PL', 'PT', 'RO', 'RS', 'SK', 'SI', 'ES', 'SE', 'CH', 'GB', 'UA'];
+window.regionLines = cc => {
+  if(!cc) return ['', 'Choose your location to see what is available.'];
+  let name = cc; try { name = new Intl.DisplayNames([LOC], { type: 'region' }).of(cc) || cc; } catch {}
+  return [name,
+    cc === 'HU' ? 'Holidays: built-in Hungarian list' : 'Holidays: public holidays of this country',
+    ND.includes(cc) ? 'Name days: available' : 'Name days: not available for this country',
+    cc === 'US' ? 'Official warnings: National Weather Service' : cc === 'HU' ? 'Official warnings: HungaroMet (in the Android app)' : MA.includes(cc) ? 'Official warnings: MeteoAlarm (in the Android app)' : 'Official warnings: not available here, forecast-based ones are shown'];
+};
+const paintRegion = (box, cc) => { const l = regionLines(cc); box.innerHTML = ''; l.forEach((t, i) => { if(!t) return; const e = document.createElement(i ? 'span' : 'b'); e.textContent = t; box.appendChild(e); }); };
+window.paintRegion = paintRegion;
+
+/* ---------------- accessibility */
+const reduceMotion = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+function applyA11y(o){
+  o = o || cfg;
+  const ts = o.textSize === 'auto' ? (window.__fontScale || 1) : (+o.textSize || 1);
+  document.documentElement.style.setProperty('--ts', Math.min(1.5, Math.max(.85, ts)).toFixed(3));
+  document.body.classList.toggle('hc', !!o.contrast || matchMedia('(prefers-contrast: more)').matches);
+}
+window.applyA11y = applyA11y;
+if(isApp()) nat('getInfo').then(i => { if(i && i.fontScale){ window.__fontScale = +i.fontScale; applyA11y(); } }).catch(() => {});
+applyA11y();
+
+/* ---------------- night screen */
+const N = { on: false, prevFace: null, idx: -1, peekUntil: 0, touch: 0 };
+const inNightWindow = () => {
+  if(!cfg.nightMode || cfg.nightMode === 'off') return false;
+  const a = hm2m(cfg.nightFrom || '22:30'), b = hm2m(cfg.nightTo || '07:00'), d = new Date(), m = d.getHours() * 60 + d.getMinutes();
+  return a !== b && (a < b ? m >= a && m < b : m >= a || m < b);
+};
+window.nightActive = () => N.on;
+window.nightDark = () => N.on && cfg.nightMode === 'black' && Date.now() >= N.peekUntil && $('#ring').hidden;
+const blk = $('#nightblk');
+function redClock(){
+  if(N.idx < 0) N.idx = window.clockFaceIndex ? clockFaceIndex('Night (red)') : -1;
+  if(N.idx < 0) return;
+  if(cfg.face !== N.idx){ if(N.prevFace === null) N.prevFace = cfg.face | 0; cfg.face = N.idx; store(); }
+  if($('#clockscr').hidden) openClock();
+}
+function enterNight(){
+  N.on = true;
+  if(cfg.nightMode === 'red' && !$('#dlg').open && !isMusicPlaying) redClock();
+}
+function leaveNight(){
+  N.on = false; blk.classList.remove('on'); blk.hidden = true;
+  if(N.idx >= 0 && cfg.face === N.idx && N.prevFace !== null){ cfg.face = N.prevFace; store(); if(!$('#clockscr').hidden && $('#setup').hidden && !$('#dlg').open) openHome(); }
+  N.prevFace = null;
+  if(window.dimTick) dimTick();
+}
+function nightTick(){
+  const want = inNightWindow() && $('#setup').hidden;
+  if(want && !N.on) enterNight();
+  else if(!want && N.on) leaveNight();
+  if(!N.on) return;
+  if(cfg.nightMode === 'black'){
+    const dark = nightDark() && !$('#dlg').open;
+    if(dark){ if(blk.hidden){ blk.hidden = false; setTimeout(() => blk.classList.add('on'), 40); } else blk.classList.add('on'); } else blk.classList.remove('on');
+  } else if(cfg.nightMode === 'red'){
+    /* after music or a look around, go back to the red clock once things are quiet again */
+    if($('#clockscr').hidden && !isMusicPlaying && Date.now() - N.touch > 120000 && !$('#dlg').open && $('#ring').hidden && !awayMode) redClock();
+  }
+  if(window.dimTick) dimTick();
+}
+addEventListener('pointerdown', () => { N.touch = Date.now(); }, true);
+blk.addEventListener('pointerdown', e => { e.stopPropagation(); N.peekUntil = Date.now() + 60000; blk.classList.remove('on'); if(window.dimTick) dimTick(); setTimeout(nightTick, 60500); });
+setInterval(nightTick, 20000); setTimeout(nightTick, 3000);
+
+/* ---------------- PIN lock (only a hash of the PIN is kept) */
+async function hashPin(pin, salt){
+  const txt = salt + ':' + pin;
+  try { const b = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(txt)); return [...new Uint8Array(b)].map(x => x.toString(16).padStart(2, '0')).join(''); }
+  catch { let h = 2166136261; for(const c of txt){ h ^= c.charCodeAt(0); h = Math.imul(h, 16777619) >>> 0; } return 'f' + h.toString(16); }
+}
+window.setPin = async pin => { cfg.pinSalt = Math.random().toString(36).slice(2, 10); cfg.pinHash = await hashPin(pin, cfg.pinSalt); store(); };
+let unlockedUntil = 0;
+const locked = () => !!cfg.pinHash && Date.now() > unlockedUntil;
+/* asks for 4 digits; check = compare with the saved PIN, otherwise just return them */
+function pinPad(title, check){
+  return new Promise(res => {
+    const d = $('#pindlg'), dots = [...$('#pindots').children]; let v = '', done = false;
+    $('#pintitle').textContent = title; $('#pinmsg').textContent = '';
+    const paint = () => dots.forEach((b, i) => b.classList.toggle('on', i < v.length));
+    const finish = r => { if(done) return; done = true; d.close(); res(r); };
+    paint();
+    $('#pinpad').onclick = async e => {
+      const b = e.target.closest('button'); if(!b) return;
+      if(b.dataset.x === 'cancel') return finish(null);
+      if(b.dataset.x === 'del'){ v = v.slice(0, -1); paint(); return; }
+      if(v.length >= 4) return;
+      v += b.textContent; paint();
+      if(v.length === 4){
+        if(!check) return setTimeout(() => finish(v), 150);
+        if(await hashPin(v, cfg.pinSalt || '') === cfg.pinHash) return setTimeout(() => finish(v), 150);
+        const p = $('#pindots'); p.classList.remove('bad'); void p.offsetWidth; p.classList.add('bad');
+        $('#pinmsg').textContent = 'Wrong PIN. Try again.'; v = ''; setTimeout(paint, 300);
+      }
+    };
+    d.oncancel = e => { e.preventDefault(); finish(null); };
+    d.showModal();
+  });
+}
+async function unlock(){ if(!locked()) return true; const ok = await pinPad('Enter your PIN', true); if(ok) unlockedUntil = Date.now() + 5 * 60000; return !!ok; }
+/* every way into Settings ends in showModal, every way into setup in openSetup */
+{ const dlg = $('#dlg'), sm = dlg.showModal.bind(dlg);
+  dlg.showModal = () => { if(!locked()) return sm(); unlock().then(ok => { if(ok) sm(); }); }; }
+{ const os = window.openSetup; window.openSetup = (...a) => { if(!locked()) return os(...a); unlock().then(ok => { if(ok) os(...a); }); }; }
+const pinState = () => { $('#pinstate').textContent = cfg.pinHash ? 'Settings are locked with a PIN.' : 'No PIN set. Anyone can open Settings.'; $('#pinset').textContent = cfg.pinHash ? 'Change the PIN' : 'Set a PIN'; $('#pinoff').hidden = !cfg.pinHash; };
+$('#pinset').onclick = async () => {
+  const a = await pinPad('Choose a 4-digit PIN', false); if(!a) return;
+  const b = await pinPad('Enter the same PIN again', false); if(!b) return;
+  if(a !== b){ toast('The two PINs were different. Nothing was changed.'); return; }
+  await setPin(a); unlockedUntil = Date.now() + 5 * 60000; pinState(); toast('PIN set. Settings are now locked.');
+};
+$('#pinoff').onclick = () => { delete cfg.pinHash; delete cfg.pinSalt; store(); pinState(); toast('PIN removed.'); };
+
+/* ---------------- backup and restore */
+const SECRET = ['user', 'key', 'spClient', 'omKey', 'owmKey', 'icalUrl', 'icalProxy'];
+function makeBackup(keys, bg){
+  const c = JSON.parse(JSON.stringify(cfg));
+  ['_tryMode', 'pinHash', 'pinSalt', 'channel', 'accent', 'accentFor', '_uTouched'].forEach(k => delete c[k]);
+  if(!keys) SECRET.forEach(k => delete c[k]);
+  if(c.city){ delete c.city.names; delete c.city.namesKey; delete c.city.region; delete c.city.regionKey; }
+  const o = { app: 'photo-frame', kind: 'settings', v: 1, made: new Date().toISOString(), web: window.WEB_VERSION, cfg: c, favs: jget('pf-favs', []), hidden: jget('pf-hidden', []) };
+  if(bg){ try { o.bg = localStorage.getItem('pf-bgimg') || ''; } catch {} }
+  return o;
+}
+const toCode = o => 'PF1.' + btoa(unescape(encodeURIComponent(JSON.stringify(o))));
+window.pfBackup = { make: makeBackup, code: toCode, parse: s => parseBackup(s) };
+function parseBackup(text){
+  text = String(text || '').trim();
+  let o;
+  if(/^PF1\./.test(text)) o = JSON.parse(decodeURIComponent(escape(atob(text.slice(4).replace(/\s+/g, '')))));
+  else o = JSON.parse(text);
+  if(!o || o.app !== 'photo-frame' || !o.cfg || typeof o.cfg !== 'object') throw new Error('This is not a photo-frame backup.');
+  return o;
+}
+function applyBackup(o){
+  const keep = { pinHash: cfg.pinHash, pinSalt: cfg.pinSalt, channel: cfg.channel };
+  const next = Object.assign({}, cfg, o.cfg);
+  SECRET.forEach(k => { if(!(k in o.cfg) && cfg[k]) next[k] = cfg[k]; });
+  Object.keys(keep).forEach(k => { if(keep[k] !== undefined) next[k] = keep[k]; else delete next[k]; });
+  next.setup = 1;
+  try {
+    localStorage.setItem('pf', JSON.stringify(next));
+    if(Array.isArray(o.favs)) localStorage.setItem('pf-favs', JSON.stringify(o.favs));
+    if(Array.isArray(o.hidden)) localStorage.setItem('pf-hidden', JSON.stringify(o.hidden));
+    if(o.bg) localStorage.setItem('pf-bgimg', o.bg);
+  } catch { throw new Error('This device ran out of storage space.'); }
+  localStorage.removeItem('pf-su-resume');
+  setTimeout(() => location.reload(), 900);
+}
+const fileName = () => 'photo-frame-backup-' + new Date().toISOString().slice(0, 10) + '.json';
+$('#bksave').onclick = async () => {
+  const res = $('#bkres'), text = JSON.stringify(makeBackup($('#bkkeys').checked, $('#bkbg').checked), null, 1);
+  if(isApp()){
+    try { const r = await nat('saveFile', { name: fileName(), text, mime: 'application/json' }); res.textContent = 'Saved to ' + r.path; }
+    catch(e){ res.textContent = /not implemented|not available|unimplemented/i.test(e.message || '') ? 'This app version can\'t save files yet. Update the app, or use "Copy as code".' : 'Could not save: ' + (e.message || e); }
+    return;
+  }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'application/json' })); a.download = fileName();
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 1000);
+  res.textContent = 'Backup file downloaded.';
+};
+async function copyText(t){
+  /* the clipboard API can hang without focus, so it gets 1.5 s before the old way is tried */
+  try { if(await Promise.race([navigator.clipboard.writeText(t).then(() => true), new Promise(r => setTimeout(() => r(false), 1500))])) return true; throw 0; }
+  catch { const x = document.createElement('textarea'); x.value = t; x.style.position = 'fixed'; x.style.opacity = '0'; document.body.appendChild(x); x.select(); let ok = false; try { ok = document.execCommand('copy'); } catch {} x.remove(); return ok; }
+}
+$('#bkcopy').onclick = async () => {
+  const code = toCode(makeBackup($('#bkkeys').checked, false));
+  $('#bkres').textContent = (await copyText(code)) ? 'Backup code copied (' + Math.round(code.length / 1024 * 10) / 10 + ' KB). Paste it somewhere safe, for example a note or an email to yourself.' : 'Copying is blocked here. Use "Save backup file" instead.';
+};
+const rs = $('#restoredlg');
+window.openRestore = () => { $('#rscode').value = ''; $('#rsres').textContent = ''; rs.showModal(); };
+$('#bkrestore').onclick = () => openRestore();
+$('#rsclose').onclick = () => rs.close();
+$('#rsfile').onclick = () => $('#bkfile').click();
+const doRestore = text => { try { applyBackup(parseBackup(text)); $('#rsres').textContent = 'Restored. Restarting…'; } catch(e){ $('#rsres').textContent = (e && e.message && !/JSON|token|atob|URI/i.test(e.message)) ? e.message : 'This doesn\'t look like a photo-frame backup.'; } };
+$('#bkfile').onchange = e => { const f = e.target.files[0]; e.target.value = ''; if(!f) return; const r = new FileReader(); r.onload = () => doRestore(r.result); r.readAsText(f); };
+$('#rsapply').onclick = () => { if(!$('#rscode').value.trim()){ $('#rsres').textContent = 'Choose a file or paste a code first.'; return; } doRestore($('#rscode').value); };
+
+/* ---------------- beta updates */
+const chanInfo = () => { $('#chaninfo').textContent = window.FRAME_CHANNEL === 'beta' ? 'This frame is running the beta version (v' + window.WEB_VERSION + ').' : 'This frame is running the normal version (v' + window.WEB_VERSION + ').'; };
+
+/* ---------------- report a problem */
+async function diag(){
+  const L = [];
+  let app = null; if(isApp()){ try { app = await nat('getInfo'); } catch {} }
+  let dev = window.lastDevice; if(!dev && window.detectDevice){ try { dev = await detectDevice(); } catch {} }
+  L.push('Frame: v' + window.WEB_VERSION + (window.FRAME_CHANNEL === 'beta' ? ' (beta)' : '') + (app ? ' · Android app ' + app.version + ' (Android ' + app.android + ')' : ' · browser'));
+  if(dev) L.push('Device: ' + dev.type + ' · ' + dev.name + (dev.cores ? ' · ' + dev.cores + ' cores' : '') + (dev.ramGb ? ' · ' + dev.ramGb + ' GB' : ''));
+  L.push('Screen: ' + innerWidth + '×' + innerHeight + ' @' + (devicePixelRatio || 1) + 'x · touch ' + (navigator.maxTouchPoints || 0));
+  L.push('Browser: ' + navigator.userAgent);
+  L.push('Language: ' + LANG + ' · country: ' + (CITY.cc || '?') + ' · performance: ' + (cfg.perf || 'auto') + (window.LITE ? ' (light active)' : ''));
+  L.push('Settings: music ' + (cfg.musicSrc || '-') + ', weather ' + (cfg.wxProvider || 'om') + ', brightness ' + (cfg.dimMode || 'off') + ', night ' + (cfg.nightMode || 'off') + ', background ' + (cfg.homeBg || 'ambient') + ', units ' + (cfg.tempU || 'c') + '/' + (cfg.windU || 'kmh') + '/' + (cfg.hour12 ? '12h' : '24h') + ', photos ' + (typeof photos !== 'undefined' ? photos.length : '?') + ', warnings ' + (cfg.wxWarn === false ? 'off' : 'on') + ', PIN ' + (cfg.pinHash ? 'yes' : 'no'));
+  const ex = []; try { if(typeof wxError !== 'undefined' && wxError) ex.push('Weather: ' + wxError); } catch {}
+  if(ex.length) L.push(...ex);
+  const er = (window.__errs || []).slice(-20);
+  L.push('', 'Recent problems (' + er.length + '):', ...(er.length ? er : ['none']));
+  return L.join('\n');
+}
+const rd = $('#repdlg');
+$('#repbtn').onclick = async () => { $('#repwhat').value = ''; $('#repres').textContent = ''; $('#repdiag').value = 'Collecting…'; rd.showModal(); $('#repdiag').value = await diag(); };
+$('#repclose').onclick = () => rd.close();
+const fullReport = () => '**What happened**\n' + ($('#repwhat').value.trim() || '(not described)') + '\n\n**Technical details**\n```\n' + $('#repdiag').value + '\n```';
+$('#repcopy').onclick = async () => { $('#repres').textContent = (await copyText(fullReport())) ? 'Copied. You can paste it into an email or a message.' : 'Copying is blocked here.'; };
+$('#repgo').onclick = () => {
+  const what = $('#repwhat').value.trim(), title = what ? what.split('\n')[0].slice(0, 70) : 'Problem report';
+  let det = $('#repdiag').value; const enc = encodeURIComponent;
+  const make = () => REPO + '/issues/new?template=bug.yml&labels=bug&title=' + enc(title) + '&what=' + enc(what) + '&details=' + enc(det);
+  while(make().length > 7600 && det.length > 200) det = det.slice(0, det.length - 300) + '\n…';
+  openLink(make());
+  $('#repres').textContent = 'GitHub opened. You need a free GitHub account to send it; without one, use "Copy report".';
+};
+
+/* ---------------- Settings: fill in and save */
+$('#set').addEventListener('click', () => {
+  $('#tempu').value = cfg.tempU || 'c'; $('#windu').value = cfg.windU || 'kmh'; $('#clockfmt').value = cfg.hour12 ? '12' : '24';
+  $('#namedays').checked = cfg.nameDays !== false;
+  paintRegion($('#regioninfo'), CITY.cc); countryOf().then(cc => paintRegion($('#regioninfo'), cc));
+  $('#nightmode').value = cfg.nightMode || 'off'; $('#nightfrom').value = cfg.nightFrom || '22:30'; $('#nightto').value = cfg.nightTo || '07:00'; $('#nightset').hidden = $('#nightmode').value === 'off';
+  $('#textsize').value = cfg.textSize === undefined ? '1' : String(cfg.textSize);
+  $('#textsize').querySelector('[value=auto]').hidden = !isApp();
+  $('#contrast').checked = !!cfg.contrast;
+  $('#motioninfo').textContent = reduceMotion() ? 'This device asks for reduced motion. You can turn animations off under Performance.' : '';
+  $('#betaopt').checked = cfg.channel === 'beta'; chanInfo();
+  $('#bkres').textContent = ''; pinState();
+});
+$('#nightmode').onchange = () => { $('#nightset').hidden = $('#nightmode').value === 'off'; };
+$('#textsize').onchange = () => applyA11y({ textSize: $('#textsize').value === 'auto' ? 'auto' : +$('#textsize').value, contrast: $('#contrast').checked });
+$('#contrast').onchange = $('#textsize').onchange;
+const undo = () => applyA11y();
+$('#cancel').addEventListener('click', undo); $('#dlg').addEventListener('cancel', undo);
+$('#save').addEventListener('click', () => {
+  const units = (cfg.tempU || 'c') + (cfg.windU || 'kmh') + (cfg.hour12 ? 1 : 0);
+  cfg.tempU = $('#tempu').value; cfg.windU = $('#windu').value; cfg.hour12 = $('#clockfmt').value === '12' ? 1 : 0;
+  cfg.nameDays = $('#namedays').checked;
+  cfg.nightMode = $('#nightmode').value; cfg.nightFrom = $('#nightfrom').value || '22:30'; cfg.nightTo = $('#nightto').value || '07:00';
+  cfg.textSize = $('#textsize').value === 'auto' ? 'auto' : +$('#textsize').value; cfg.contrast = $('#contrast').checked;
+  const beta = $('#betaopt').checked, chg = beta !== (cfg.channel === 'beta');
+  cfg.channel = beta ? 'beta' : 'stable';
+  store(); applyA11y();
+  if(units !== cfg.tempU + cfg.windU + cfg.hour12){ if(window.weather) weather(); document.dispatchEvent(new Event('wxupdate')); }
+  N.peekUntil = 0; setTimeout(nightTick, 800);
+  if(chg){ toast(beta ? 'Switching to beta updates…' : 'Switching back to normal updates…'); setTimeout(() => location.reload(), 1200); }
+});
 })();
 </script>
 </body>

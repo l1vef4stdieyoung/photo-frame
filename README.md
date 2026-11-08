@@ -40,7 +40,7 @@ A tile layout you return to from every screen.
 - **Now playing tile:** shows the current song and its zoomed in album art.
 - **Clock tile:** Here you can enter the clock faces that are available in this app.
 - **Calendar tile (optional):** today's and tomorrow's events; tap it for a two-week agenda.
-- **Greeting line:** the date, plus holidays and Hungarian name days.
+- **Greeting line:** the date, plus the public holidays of your country and name days (in about 20 countries).
 - **Backgrounds:** animated, one of 8 built-in gradients, or your own picture. The background you pick is shown right away, in setup and in Settings.
 - **Colour theme (optional):** the whole interface (icons, buttons, highlights) takes on a colour that matches your background. With your own picture, the colour is picked from the picture.
 
@@ -69,7 +69,7 @@ A tile layout you return to from every screen.
   - **Sun:** daylight arc, golden hour, civil dawn and dusk.
   - **Moon:** a drawn moon in the real phase, moonrise and moonset, distance, and the zodiac constellation it's in.
   - **Rain radar:** the last 2 hours, animated over a map centred on your town.
-- **Warnings:** strong gusts, heavy rain or snow, storms, freezing rain, heat, cold and fog. In the Android app, the **official HungaroMet warnings** for your region are shown as well.
+- **Warnings:** strong gusts, heavy rain or snow, storms, freezing rain, heat, cold and fog. **Official warnings** are shown where available: most of Europe through MeteoAlarm (HungaroMet in Hungary; Android app only) and the US through the National Weather Service.
 - **Providers:** Open-Meteo (free, no key), the paid Open-Meteo API, or OpenWeatherMap.
 - **Sky events:** at golden hour, sunrise, moonrise, a full moon or during storms, the matching view opens by itself. 5 minutes after the event it goes back Home, unless you've picked another screen in the meantime.
 
@@ -80,8 +80,13 @@ A tile layout you return to from every screen.
 
 ###  QOL Features
 - **Brightness Control:** You can set the app to automatically lower either your devices brightness in the android app or the htmls brightness according to your own schedule, sunset and sunrise, your devices camera or light sensor. you can also set how much the brightness is turned up or down.
+- **Night screen:** between the hours you choose, the frame shows the red night clock or turns the screen black (with the lowest backlight in the app). A tap shows the normal screen for a minute; alarms still ring. In the morning it goes back Home.
 - **Away mode:** a black screen with a slowly drifting clock, to protect the screen from burn-in.
-- **Seasonal touches:** holidays, Hungarian name days, and gentle snow on the screen from December to early January.
+- **Seasonal touches:** holidays, name days, and gentle snow on the screen from December to early January (northern hemisphere only).
+- **Units and formats:** °C or °F, km/h, mph or m/s, and a 12- or 24-hour clock. Setup suggests them from your country.
+- **Accessibility:** larger text (or the device's own text size in the app) and a high-contrast look. If the device asks for reduced motion, animations start switched off.
+- **PIN lock:** a 4-digit PIN in front of Settings and setup, so children or guests can't change anything. It's a simple lock, not real security.
+- **Backup and restore:** save your settings to a file (Downloads in the app) or copy them as a code, and restore them on another device or after a reinstall.
 - **Languages:** English and Hungarian, switchable at any time.
 - **Light performance mode for slow tablets:** no frosted-glass blur, lower frame rates and smaller images. It's chosen automatically on weak devices, based on the device detected in setup.
 
@@ -102,18 +107,20 @@ Pick whichever suits your device.
 
 ## First-run setup
 
-A short guided setup appears the first time you open it:
+A guided setup appears the first time you open it. A list on the left shows the steps; tap a finished step to go back to it.
 
-1. **Language:** English or Hungarian(Magyar). Then **your device:** the setup detects whether it's a tablet, phone, PC, Mac, iPad or iPhone (in the Android app also the exact model, memory and processor cores), and you can correct it. Based on that it recommends a **performance** mode: Automatic, Best visuals, or Light for slower tablets.
-2. **Weather:** search for your city or tap *Use my location*, and choose a weather provider.
-3. **Photos:** choose your photos, the time per photo and the transition, and whether to keep them saved on the device.
-4. **Music:** Last.fm, Spotify, or no music.
-5. **Personalize:**
-   - Now Playing background and beat pulse.
-   - Home background (shown behind the setup as soon as you pick it).
-   - Photo transition style.
-   - What the Photos tile shows.
-   - Extras: night dimming, sky-event jumps, holidays, edge swiping, weather warnings, matching the colours to the background.
+- **Welcome:** English or Hungarian (Magyar). You can also **restore a backup** here and skip the rest.
+
+1. **Device:** the setup detects whether it's a tablet, phone, PC, Mac, iPad or iPhone (in the Android app also the exact model, memory and processor cores), and you can correct it. Based on that it recommends a **performance** mode: Automatic, Best visuals, or Light for slower tablets.
+2. **Location:** search for your city or tap *Use my location*, and choose a weather provider.
+3. **Region & units:** shows what your country gets (holidays, name days, official warnings) and lets you choose °C/°F, the wind unit and the clock format. These are suggested from your country.
+4. **Photos:** choose your photos, the time per photo and the transition, and whether to keep them saved on the device.
+5. **Music:** Last.fm, Spotify, or no music.
+6. **Look:** Home background (shown behind the setup as soon as you pick it) and matching colours, Now Playing background and beat pulse, photo transition style, what the Photos tile shows.
+7. **Night & comfort:** screen brightness, the night screen (red clock or black) and its hours, text size and high contrast.
+8. **Extras & lock:** sky-event jumps, edge swiping, opening Now Playing automatically, and an optional PIN for Settings.
+
+The last page sums up your choices.
 
 Everything can be changed later in **Settings**.
 
@@ -149,12 +156,13 @@ Everything can be changed later in **Settings**.
 
 Settings is organised in tabs:
 
-- **General:** language, performance mode, animations, night dimming, edge swiping.
+- **General:** language, performance mode, animations, screen brightness, night screen, text size and contrast, edge swiping.
 - **Photos:** time per photo, transitions, portrait pairs, EXIF, saved photos (with "Remove saved photos" and "Show hidden photos again"), picture of the day.
 - **Music:** source (Last.fm or Spotify), Now Playing behaviour, background liveliness, beat pulse, clock position.
 - **Weather:** location, provider and API key, sky timelapse, automatic sky-event views, warnings.
+- **Region:** units (°C/°F, wind, 12/24-hour clock) and what your country gets: holidays, name days and official warnings.
 - **Home & calendar:** Home background (previewed live; *Cancel* puts the old one back), colour theme, calendar link, seasonal touches.
-- **Advanced:** a time-of-day preview for the weather sky, debug mode, running setup again, app version and updates (in the Android app), and credits.
+- **Advanced:** a time-of-day preview for the weather sky, debug mode, running setup again, the PIN lock, backup and restore, beta updates, *Report a problem*, app version and updates (in the Android app), and credits.
 
 ---
 
@@ -207,6 +215,7 @@ The app is a lightweight shell around the same frame. It loads the published pag
 - **Always on and full screen:** the screen never sleeps, and the status and navigation bars are hidden.
 - **In-app Spotify login** through `photoframe://spotify`.
 - **Update check:** when a new app version exists, the frame offers to download it.
+- **Saving backups** to the Downloads folder, and following the tablet's own text size (app 1.3.0 and newer).
 
 ### Installing
 1. On the tablet, download **[photo-frame.apk](https://github.com/l1vef4stdieyoung/photo-frame/releases/latest/download/photo-frame.apk)** from the latest release.
@@ -219,6 +228,10 @@ It requires Android 7 or newer. It was tested on a Galaxy Tab A7 running Lineage
 ### Updates
 - **The frame (almost every change):** arrives by itself. The app reloads when a new version is published, at a quiet moment, and also every night at 4:00.
 - **The app shell (rare):** the frame shows *App update available*. Tap it, download, and confirm the install.
+- **Beta updates:** turn on **Settings → Advanced → Updates → Get beta updates** to get new versions before everyone else. They may have bugs; turn it off to go back to the normal version.
+
+### Found a bug?
+Use **Settings → Advanced → Report a problem**. It prepares a GitHub issue with the frame version, the device and recent errors (no API keys, logins or location), and you can read everything before sending. Without a GitHub account, use *Copy report* and send it another way.
 
 ---
 
@@ -229,7 +242,7 @@ It requires Android 7 or newer. It was tested on a Galaxy Tab A7 running Lineage
 - **Your photos are never uploaded anywhere.** They're read and resized on the device.
 - **Data goes straight to the services you use.** The frame talks directly to the services you enable, and only sends them what they need (your city's coordinates for the weather; your Last.fm username and key; Spotify login tokens; the song's artist and title for artwork, lyrics and tempo).
 
-Services that may be contacted: Open-Meteo (weather, city search), OpenWeatherMap (if chosen), MeteoAlarm (official warnings, Android app), RainViewer and OpenStreetMap (radar), Last.fm, Spotify, Apple iTunes Search (artwork), LRCLIB (lyrics), Deezer (tempo), Wikimedia Commons (picture of the day), nameday.abalin.net (name days), BigDataCloud ("Use my location" and region lookup), and your calendar's server.
+Services that may be contacted: Open-Meteo (weather, city search), OpenWeatherMap (if chosen), MeteoAlarm (official warnings, Android app), the US National Weather Service (US warnings), Nager.Date (public holidays), RainViewer and OpenStreetMap (radar), Last.fm, Spotify, Apple iTunes Search (artwork), LRCLIB (lyrics), Deezer (tempo), Wikimedia Commons (picture of the day), nameday.abalin.net (name days), BigDataCloud ("Use my location" and region lookup), and your calendar's server.
 
 ---
 
@@ -251,7 +264,8 @@ Services that may be contacted: Open-Meteo (weather, city search), OpenWeatherMa
 - **One file:** the whole frame is a single self-contained HTML file (HTML, CSS and JavaScript, no build step), so it's easy to host anywhere and to edit.
 - **Offline:** a small **service worker** keeps a copy of the frame. It always asks the server for a newer version first, so updates arrive on the next reload, and the frame still starts without internet.
 - **Version check:** `docs/version.json` tells running frames that a new version exists (`web`) and which Android app version is current (`apk`).
-- **The Android app** is a Capacitor shell that loads the hosted page. Its native `Frame` plugin provides `setBrightness`, `httpGet` (network requests without browser restrictions), `getInfo` (app version and device details for setup), `openUrl`, `requestOverlay` and the light sensor (`startLight`, `getLight`, `stopLight`). A boot receiver starts it after a restart. The page detects the app (`isApp()`) and uses these features only when they're available, so the same file works everywhere.
+- **Beta channel:** `docs/beta/` holds the beta copy with its own `version.json`. Frames with beta updates on are sent there when they load; `docs/404.html` sends them back if the beta copy is missing.
+- **The Android app** is a Capacitor shell that loads the hosted page. Its native `Frame` plugin provides `setBrightness`, `httpGet` (network requests without browser restrictions), `getInfo` (app version, device details and the system text size), `openUrl`, `requestOverlay`, `saveFile` (backups to Downloads) and the light sensor (`startLight`, `getLight`, `stopLight`). A boot receiver starts it after a restart. The page detects the app (`isApp()`) and uses these features only when they're available, so the same file works everywhere.
 - **Builds:** GitHub Actions builds a signed APK whenever the app shell changes, and publishes it as `photo-frame.apk` on the latest release.
 
 ### Repository layout
@@ -260,6 +274,8 @@ docs/                 the published frame (GitHub Pages)
   index.html          the frame itself
   version.json        current web + app versions
   sw.js               offline service worker
+  beta/               the beta copy (same files, its own version.json)
+  404.html            sends a frame back to the normal version if beta is missing
   manifest.webmanifest, icons
 android/              Capacitor Android project
   app/src/main/java/…/MainActivity.java   full screen, keep awake, Spotify return link
@@ -297,7 +313,7 @@ capacitor.config.json app id, hosted address, user-agent tag
 ## Development
 
 - **Editing:** change `docs/index.html` directly. You can open it straight from disk in Chrome to try it out; app-only features are simply skipped there.
-- **Publishing a frame update:** bump `window.WEB_VERSION` in `docs/index.html` **and** `"web"` in `docs/version.json` to the **same** value, then push. Running frames notice it and reload.
+- **Publishing a frame update:** bump `window.WEB_VERSION` in `docs/index.html` **and** `"web"` in `docs/version.json` to the **same** value, then push. Running frames notice it and reload. To try a version on beta first, put it in `docs/beta/` instead. The publisher (`Publish.cmd`) can do both, and its *Promote beta to everyone* button copies beta over.
 - **Releasing an app update:** raise `versionName` in `android/app/build.gradle`, set the same value as `"apk"` in `docs/version.json`, and push. GitHub builds and publishes the APK.
 - **Debugging on a device:** turn on **Settings → Advanced → Debug mode** for an on-screen info panel. The Android app also allows Chrome remote debugging over USB (`chrome://inspect`).
 
@@ -307,7 +323,7 @@ capacitor.config.json app id, hosted address, user-agent tag
 
 - **Android folder picking:** Android's in-app file picker can't choose a whole folder, so select your photos as a batch. They're then kept on the device.
 - **Song tempo:** this comes from Deezer, which doesn't have it for every song. Those songs simply don't pulse. The tempo is kept in a calm 70–140 BPM range, so it may show half or double the real value.
-- **Official warnings:** these currently cover Hungary only (MeteoAlarm regions), and only in the Android app. Elsewhere, warnings are worked out from the forecast and labelled as such.
+- **Official warnings:** MeteoAlarm (Europe) only works in the Android app, because it blocks web pages. Outside Hungary the frame matches your area by place name, which doesn't always succeed; then only forecast-based warnings are shown. The US alerts work everywhere.
 - **Spotify controls** need Spotify Premium.
 - **iPhone and iPad:** there's no native app. Use the installed web app.
 
@@ -315,4 +331,4 @@ capacitor.config.json app id, hosted address, user-agent tag
 
 ## Credits
 
-Weather: [Open-Meteo](https://open-meteo.com/) · Warnings: [MeteoAlarm](https://meteoalarm.org/) / HungaroMet · Radar: [RainViewer](https://www.rainviewer.com/) · Map: © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors · Lyrics: [LRCLIB](https://lrclib.net/) · Tempo: [Deezer](https://developers.deezer.com/) · Artwork: Apple iTunes Search, Last.fm · Picture of the day: [Wikimedia Commons](https://commons.wikimedia.org/) · Name days: [abalin.net](https://nameday.abalin.net/) · App shell: [Capacitor](https://capacitorjs.com/) · Font: [Manrope](https://fonts.google.com/specimen/Manrope)
+Weather: [Open-Meteo](https://open-meteo.com/) · Warnings: [MeteoAlarm](https://meteoalarm.org/) / HungaroMet, [National Weather Service](https://www.weather.gov/) · Holidays: [Nager.Date](https://date.nager.at/) · Radar: [RainViewer](https://www.rainviewer.com/) · Map: © [OpenStreetMap](https://www.openstreetmap.org/copyright) contributors · Lyrics: [LRCLIB](https://lrclib.net/) · Tempo: [Deezer](https://developers.deezer.com/) · Artwork: Apple iTunes Search, Last.fm · Picture of the day: [Wikimedia Commons](https://commons.wikimedia.org/) · Name days: [abalin.net](https://nameday.abalin.net/) · App shell: [Capacitor](https://capacitorjs.com/) · Font: [Manrope](https://fonts.google.com/specimen/Manrope)
