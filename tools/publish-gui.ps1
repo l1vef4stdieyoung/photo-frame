@@ -211,6 +211,67 @@ function New-Button($parent, $text, $x, $y, $w = 200, $h = 34) {
 function Busy([bool]$on) { $form.UseWaitCursor = $on; $tabs.Enabled = -not $on; [System.Windows.Forms.Application]::DoEvents() }
 function Fail($e) { Log ('ERROR: ' + $e.Exception.Message); [System.Windows.Forms.MessageBox]::Show($e.Exception.Message, 'photo-frame publisher', 'OK', 'Error') | Out-Null }
 
+# ---------------- tab 0: guide (plain steps for the usual jobs)
+$t0 = New-Object System.Windows.Forms.TabPage; $t0.Text = 'Guide'; $tabs.TabPages.Add($t0)
+$guide = New-Object System.Windows.Forms.RichTextBox
+$guide.ReadOnly = $true; $guide.BorderStyle = 'None'; $guide.BackColor = [System.Drawing.Color]::White
+$guide.Location = New-Object System.Drawing.Point(12, 8); $guide.Size = New-Object System.Drawing.Size(786, 292)
+$guide.ScrollBars = 'Vertical'; $guide.DetectUrls = $false; $guide.TabStop = $false
+$t0.Controls.Add($guide)
+$gBold = New-Object System.Drawing.Font('Segoe UI', 10.5, [System.Drawing.FontStyle]::Bold)
+$gText = New-Object System.Drawing.Font('Segoe UI', 10)
+function Add-Guide([string]$Text, [bool]$Heading = $false) {
+    $guide.SelectionStart = $guide.TextLength
+    $guide.SelectionFont = if ($Heading) { $gBold } else { $gText }
+    $guide.SelectionColor = if ($Heading) { [System.Drawing.Color]::FromArgb(30, 60, 130) } else { [System.Drawing.Color]::Black }
+    $guide.AppendText($(if ($Heading -and $guide.TextLength) { "`n" } else { '' }) + $Text + "`n")
+}
+Add-Guide 'WHICH TAB DO I NEED?' $true
+Add-Guide '- You have a new photo-frame(vNN).html  ->  Frame update'
+Add-Guide '- You (or Claude) changed the README or other files  ->  Other changes'
+Add-Guide '- The Android app itself changed (the android folder; Claude will tell you)  ->  App release'
+Add-Guide 'Not sure? Open "Other changes": it lists every file that changed.'
+
+Add-Guide 'PUBLISHING A NEW FRAME VERSION (the usual job)' $true
+Add-Guide '1. Frame update tab -> Browse... -> pick the new photo-frame(vNN).html. The version fills itself in (v43 -> 43.0, v43.1 -> 43.1).'
+Add-Guide '2. "Publish to": Beta. Press "Publish frame update" and wait until the log says LIVE.'
+Add-Guide '3. Check it on your tablet (it gets beta updates). It reloads by itself at a quiet moment, or close and reopen the app.'
+Add-Guide '4. Looks good? Press "Promote beta to everyone". Done.'
+Add-Guide 'A tiny fix or in a hurry? Choose "Everyone" in step 2 and skip steps 3 and 4.'
+
+Add-Guide 'VERSION NUMBERS' $true
+Add-Guide 'Only bug fixes -> add .1 (43.1, 43.2 ...). Bigger changes -> next number (44.0). The same as your file names.'
+
+Add-Guide 'OTHER CHANGES (README, this publisher, ...)' $true
+Add-Guide '1. Edited the README on github.com? Press "Get latest from GitHub" first.'
+Add-Guide '2. Other changes tab -> "Refresh list" to see what changed.'
+Add-Guide '3. Write a short description -> "Commit & push all".'
+
+Add-Guide 'RELEASING A NEW APP VERSION (rare)' $true
+Add-Guide 'Only when the Android app itself changed. The website frame does not need this.'
+Add-Guide '1. App release tab: the next version is suggested (1.3.0 -> 1.3.1).'
+Add-Guide '2. Release notes in your usual style, for example:'
+Add-Guide '      **Fixed**'
+Add-Guide '      - A bug where ...'
+Add-Guide '      **Added**'
+Add-Guide '      - ...'
+Add-Guide '3. "Release app update". This also sends any other changed files. GitHub builds the APK in about 3 minutes, then tablets show "App update available".'
+Add-Guide '4. "Download latest APK to PC" if you want your own copy.'
+
+Add-Guide 'THE BUTTONS AT THE BOTTOM' $true
+Add-Guide '- Open website: the frame in your browser.   - Open GitHub: the repository.'
+Add-Guide '- Check live version: what the website serves right now.'
+Add-Guide '- Get latest from GitHub: brings in changes made somewhere else (for example README edits on github.com).'
+Add-Guide '- Commit as: the name shown on GitHub for your changes (photo-frame push-o-matic, or you).'
+
+Add-Guide 'IF SOMETHING GOES WRONG' $true
+Add-Guide '- "Nothing to commit": nothing changed since the last publish.'
+Add-Guide '- "git push failed": press "Get latest from GitHub", then try again. Still failing? Check the internet connection.'
+Add-Guide '- "Not live yet": GitHub is slow sometimes. Press "Check live version" a few minutes later.'
+Add-Guide '- A new version breaks the tablet: publish the previous photo-frame(vNN).html again to Everyone, with a higher number (for example 43.2).'
+Add-Guide '- Stuck? The black box below logs every step. Copy it and send it to Claude.'
+$guide.SelectionStart = 0; $guide.ScrollToCaret()
+
 # ---------------- tab 1: frame update
 $t1 = New-Object System.Windows.Forms.TabPage; $t1.Text = 'Frame update'; $tabs.TabPages.Add($t1)
 New-Label $t1 'New frame file:' 14 18 | Out-Null
@@ -409,7 +470,7 @@ $form.Add_Shown({
     Refresh-All
     if ($TestSnapshot) {
         $script:tm = New-Object System.Windows.Forms.Timer; $script:tm.Interval = 1500
-        $script:tm.Add_Tick({ $script:tm.Stop(); $b = New-Object System.Drawing.Bitmap($form.Width, $form.Height); $form.DrawToBitmap($b, (New-Object System.Drawing.Rectangle(0, 0, $form.Width, $form.Height))); $b.Save($TestSnapshot); [Console]::Out.WriteLine($logBox.Text); $form.Close() })
+        $script:tm.Add_Tick({ $script:tm.Stop(); $b = New-Object System.Drawing.Bitmap($form.Width, $form.Height); $gr = [System.Drawing.Graphics]::FromImage($b); $gr.CopyFromScreen($form.Location, [System.Drawing.Point]::Empty, $form.Size); $gr.Dispose(); $b.Save($TestSnapshot); [Console]::Out.WriteLine($logBox.Text); $form.Close() })
         $script:tm.Start()
     }
 })
