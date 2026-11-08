@@ -7,6 +7,50 @@
 <title>Photo frame</title>
 <link rel="manifest" href="manifest.webmanifest">
 <script>
+/* v44: demo mode. Opening the frame with ?demo shows sample photos (with camera details), a made-up song with lyrics and
+   a demo calendar. Settings live in memory only: the visitor's own saved settings and photos are never read or changed. */
+(() => {
+  if(!/[?&]demo(?:[=&]|$)/.test(location.search)) return;
+  window.DEMO = true;
+  const real = window.localStorage, root = location.origin + location.pathname.replace(/beta\/(index\.html)?$/, '').replace(/index\.html$/, ''), D = root + 'demo/';
+  const nl = navigator.language || '', us = /-US$/i.test(nl);
+  const cfg = { setup: 1, lang: /^hu\b/i.test(nl) ? 'hu' : 'en', city: { name: 'Budapest, Hungary', lat: 47.4979, lon: 19.0402, cc: 'HU' },
+    user: 'demo', key: 'demo', musicSrc: 'lastfm', fm: 15, autoMusic: false, beat: true, live: 60, showExif: true, keepPhotos: false, tilePotd: 'both', potd: true,
+    trans: 'random', secs: 10, fade: 2.4, homeBg: 'aurora', themeMatch: true, icalUrl: D + 'demo.ics', seasonal: true, nameDays: true, wxWarn: true, dynViews: false,
+    dimMode: 'off', nightMode: 'off', perf: 'auto', anim: true, edgeSwipe: true, tempU: us ? 'f' : 'c', windU: us ? 'mph' : 'kmh', hour12: us ? 1 : 0, face: 0 };
+  /* stay on the copy that was opened (normal or beta) */
+  if(/\/beta\/(index\.html)?$/.test(location.pathname)) cfg.channel = 'beta';
+  const mem = { pf: JSON.stringify(cfg), 'pf-bpm': JSON.stringify({ 'lumen bay|slow morning': 92, 'lumen bay|night train postcards': 118, 'lumen bay|tidal hours': 76 }) };
+  /* only the "reloaded for version" marker uses real storage, so a version change can't make the demo reload over and over */
+  const store = { getItem: k => k === 'pf-reload-for' ? real.getItem(k) : (k in mem ? mem[k] : null), setItem: (k, v) => { if(k === 'pf-reload-for') real.setItem(k, v); else mem[k] = String(v); },
+    removeItem: k => { delete mem[k]; }, clear: () => { for(const k in mem) delete mem[k]; }, key: i => Object.keys(mem)[i] ?? null, get length(){ return Object.keys(mem).length; } };
+  try { Object.defineProperty(window, 'localStorage', { configurable: true, get: () => store }); } catch {}
+  /* the made-up songs; one "plays" for a little over three minutes, then the next */
+  const SONGS = [
+    { name: 'Slow Morning', album: 'Window Light', art: D + 'art/1.jpg', lyrics: 'Coffee steam against the glass\nWatching all the buses pass\nNothing on the list today\nLet the hours drift away\n\nSlow morning, stay a while\nSunlight in a lazy pile\nNowhere that I need to be\nSlow morning, you and me\n\nPages turning on their own\nRadio in a quiet tone\nEvery minute feels like gold\nSlow morning, let it hold' },
+    { name: 'Night Train Postcards', album: 'Night Train Postcards', art: D + 'art/2.jpg', lyrics: 'Windows full of passing towns\nLittle lights in sleepy rows\nI write you from the dining car\nTelling you how far we are\n\nPostcards from the night train\nStamped with stars and window rain\nEvery station that we pass\nI can see you in the glass\n\nMorning comes in shades of blue\nEvery mile is back to you' },
+    { name: 'Tidal Hours', album: 'Tidal Hours', art: D + 'art/3.jpg', inst: true }
+  ];
+  window.demoSong = () => SONGS[Math.floor(Date.now() / 200000) % SONGS.length];
+  const json = o => Promise.resolve(new Response(JSON.stringify(o), { status: 200, headers: { 'Content-Type': 'application/json' } }));
+  const f0 = window.fetch.bind(window);
+  window.fetch = (u, o) => {
+    const url = typeof u === 'string' ? u : (u && u.url) || '';
+    if(/ws\.audioscrobbler\.com/.test(url)){
+      if(!/user\.getrecenttracks/.test(url)) return json({});
+      const t = demoSong(), img = [t.art, t.art, t.art, t.art].map(x => ({ '#text': x }));
+      return json({ recenttracks: { track: [{ name: t.name, artist: { '#text': 'Lumen Bay' }, album: { '#text': t.album }, image: img, '@attr': { nowplaying: 'true' } }] } });
+    }
+    if(/itunes\.apple\.com/.test(url)) return json({ resultCount: 0, results: [] });
+    if(/lrclib\.net/.test(url)){
+      const q = decodeURIComponent(url), t = SONGS.find(x => q.includes(x.name));
+      return json(t ? [{ trackName: t.name, artistName: 'Lumen Bay', albumName: t.album, plainLyrics: t.lyrics || '', instrumental: !!t.inst }] : []);
+    }
+    return f0(u, o);
+  };
+})();
+</script>
+<script>
 /* v43: beta channel. Frames that opted into beta updates load /beta/, everyone else the normal page.
    A counter stops any redirect loop; docs/404.html switches a frame back if the beta copy is missing. */
 (() => { try {
@@ -1108,6 +1152,14 @@ body.themed .su-list li.done .n svg{stroke:var(--accent-ink)}
   #setup .su-s h2{font-size:clamp(1.8rem,7vh,2.8rem)}
   .su-list button{padding:7px 10px}
 }
+
+/* ===== v44: demo banner ===== */
+#demobar{position:fixed;left:50%;top:max(12px,env(safe-area-inset-top));transform:translateX(-50%);z-index:300;display:flex;align-items:center;gap:12px;padding:8px 10px 8px 16px;border-radius:999px;background:rgba(15,15,18,.78);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:.88rem;-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);transition:opacity .6s;max-width:calc(100vw - 24px)}
+#demobar.dim{opacity:.35}
+#demobar b{font-weight:700;letter-spacing:.06em;text-transform:uppercase;font-size:.75rem;padding:3px 8px;border-radius:99px;background:#fff;color:#111}
+#demobar a{color:#111;background:#fff;border-radius:99px;padding:6px 12px;text-decoration:none;font-weight:600;white-space:nowrap}
+#demobar span{opacity:.85}
+@media (max-width:640px){#demobar span{display:none}}
 </style>
 </head>
 <body class="idle">
@@ -1725,7 +1777,7 @@ body.themed .su-list li.done .n svg{stroke:var(--accent-ink)}
       </div>
       <div class="sd-card">
         <h3>About</h3>
-        <small>Photo frame v43. Weather data provided by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a>. Lyrics provided by <a href="https://lrclib.net/" target="_blank" rel="noopener">LRCLIB</a>. Radar by RainViewer, map © OpenStreetMap contributors, tempo data from Deezer, picture of the day from Wikimedia Commons.</small>
+        <small>Photo frame v44. Weather data provided by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a>. Lyrics provided by <a href="https://lrclib.net/" target="_blank" rel="noopener">LRCLIB</a>. Radar by RainViewer, map © OpenStreetMap contributors, tempo data from Deezer, picture of the day from Wikimedia Commons.</small>
       </div>
     </section>
 
@@ -1737,7 +1789,7 @@ body.themed .su-list li.done .n svg{stroke:var(--accent-ink)}
 /* ===== v40: Android app bridge =====
    Inside the photo-frame Android app, Capacitor provides window.Capacitor and the native "Frame" plugin.
    In a normal browser none of this exists and everything falls back to plain web behaviour. */
-window.WEB_VERSION = '43.0';
+window.WEB_VERSION = '44.0';
 window.FRAME_CHANNEL = /\/beta\/(index\.html)?$/.test(location.pathname) ? 'beta' : 'stable';
 /* the normal (stable) address of this frame, also used as the Spotify return address */
 window.STABLE_URL = location.origin + location.pathname.replace(/beta\/(index\.html)?$/, '').replace(/index\.html$/, '');
@@ -1783,6 +1835,9 @@ const HU = Object.assign(Object.create(null), {
   "Where are you?": "Hol vagy?",
   "Used for weather, sunrise, sunset and the moon. Currently:": "Az időjáráshoz, a napkeltéhez, a napnyugtához és a Holdhoz használjuk. Jelenleg:",
   "Search for a city": "Város keresése",
+  /* v44 demo */
+  "Demo": "Demó", "Sample photos, a made-up song and a demo calendar. Nothing is saved.": "Mintafotók, egy kitalált dal és egy bemutató naptár. Semmi sem mentődik.", "Exit demo": "Kilépés a demóból", "Lyrics written for this demo": "A dalszöveget a demóhoz írtuk",
+  "Morning walk": "Reggeli séta", "Evening reading": "Esti olvasás", "Team meeting": "Csapatmegbeszélés", "Piano lesson": "Zongoraóra", "Grocery shopping": "Bevásárlás", "Yoga": "Jóga", "Movie night": "Filmest", "Farmers' market": "Termelői piac", "Family lunch": "Családi ebéd",
   /* v43 setup */
   "Photo frame setup": "Képkeret beállítása", "Everything can be changed later in Settings.": "Később mindent módosíthatsz a Beállításokban.",
   "Device": "Eszköz", "Your device": "Az eszközöd", "Location & weather": "Helyszín és időjárás", "Region & units": "Régió és mértékegységek", "Look": "Megjelenés", "Night & comfort": "Éjszaka és kényelem", "Extras & lock": "Extrák és zár",
@@ -1869,7 +1924,7 @@ const HU = Object.assign(Object.create(null), {
   "Automatic switching": "Automatikus váltás", "Now Playing look": "A Most szól nézet megjelenése", "Location": "Helyszín", "Weather screens": "Időjárás-képernyők",
   "Home screen background": "A kezdőlap háttere", "Seasons": "Évszakok", "Time-of-day preview": "Napszak-előnézet", "Debugging": "Hibakeresés", "About": "Névjegy",
   ". It is stored only in this browser.": ". Csak ebben a böngészőben van tárolva.",
-  "Photo frame v43. Weather data provided by": "Képkeret v43. Időjárási adatok:",
+  "Photo frame v44. Weather data provided by": "Képkeret v44. Időjárási adatok:",
   ". Radar by RainViewer, map © OpenStreetMap contributors, tempo data from Deezer, picture of the day from Wikimedia Commons.": ". Radar: RainViewer, térkép: © OpenStreetMap közreműködők, tempóadatok: Deezer, a nap képe: Wikimedia Commons.",
   "Opens the Sun view at golden hour, sunrise, sunset and solar noon, the Moon view at moonrise and full moon, and the Weather overview during rain or storms. 5 minutes after the event is over it goes back to Home, unless you picked another screen in the meantime.": "Aranyórakor, napkeltekor, napnyugtakor és delelésekor a Nap nézetet, holdkeltekor és teliholdkor a Hold nézetet, eső vagy vihar idején az időjárás-áttekintést nyitja meg. 5 perccel az esemény vége után visszatér a kezdőlapra, hacsak közben nem választottál másik képernyőt.",
   "Debug mode (show technical information on every screen)": "Hibakereső mód (technikai információk minden képernyőn)",
@@ -6048,7 +6103,7 @@ window.dbgMusic = () => ({ source: cfg.musicSrc, spotifyReady: spReady(), tokenE
    v38.1: debug mode – technical information on every screen
    ===================================================================== */
 (() => {
-const VERSION = 'v43' + (isApp() ? ' (app)' : '') + (window.FRAME_CHANNEL === 'beta' ? ' beta' : '');
+const VERSION = 'v44' + (isApp() ? ' (app)' : '') + (window.DEMO ? ' demo' : '') + (window.FRAME_CHANNEL === 'beta' ? ' beta' : '');
 const hud = document.createElement('div'); hud.id = 'dbg'; hud.hidden = true; hud.setAttribute('data-nt', '');
 document.body.appendChild(hud);
 const t0 = Date.now();
@@ -6724,6 +6779,33 @@ $('#save').addEventListener('click', () => {
   N.peekUntil = 0; setTimeout(nightTick, 800);
   if(chg){ toast(beta ? 'Switching to beta updates…' : 'Switching back to normal updates…'); setTimeout(() => location.reload(), 1200); }
 });
+})();
+</script>
+<script>
+/* =====================================================================
+   v44: demo mode – sample photos and a banner (see the head of the page)
+   ===================================================================== */
+(() => {
+if(!window.DEMO) return;
+const D = STABLE_URL + 'demo/';
+/* the sample photos go through the normal slideshow, so their camera details are read like any other photo */
+(async () => {
+  try {
+    const files = await Promise.all([1, 2, 3, 4, 5, 6, 7, 8].map(async i => {
+      const n = String(i).padStart(2, '0') + '.jpg', b = await (await fetch(D + 'photos/' + n)).blob();
+      return new File([b], 'demo-' + n, { type: 'image/jpeg', lastModified: Date.now() - i * 864e5 });
+    }));
+    setPhotos(shuffle(files.map(f => ({ url: URL.createObjectURL(f), file: f }))));
+  } catch {}
+})();
+const bar = document.createElement('div'); bar.id = 'demobar';
+bar.innerHTML = '<b>Demo</b><span>Sample photos, a made-up song and a demo calendar. Nothing is saved.</span><a></a>';
+const a = bar.querySelector('a'); a.textContent = 'Exit demo'; a.href = STABLE_URL;
+document.body.appendChild(bar);
+/* the demo's lyrics are made up, not from LRCLIB */
+const credit = [...document.querySelectorAll('#lyrics *')].find(e => !e.children.length && /LRCLIB/.test(e.textContent)); if(credit) credit.textContent = 'Lyrics written for this demo';
+let t = 0; const wake = () => { bar.classList.remove('dim'); clearTimeout(t); t = setTimeout(() => bar.classList.add('dim'), 8000); };
+addEventListener('pointerdown', wake, true); wake();
 })();
 </script>
 </body>
