@@ -7103,11 +7103,13 @@ let slowRuns = 0, busy = false;
 async function sample(){
   if(busy || LITE || cfg.perfKeep || document.hidden || !$('#setup').hidden || $('#dlg').open || !box.hidden || window.DEMO) return;
   busy = true;
-  let n = 0; const t0 = performance.now();
-  await new Promise(res => { const f = t => { n++; t - t0 < 8000 ? requestAnimationFrame(f) : res(); }; requestAnimationFrame(f); });
+  let n = 0, done = false; const t0 = performance.now();
+  /* the time limit matters: with the screen off no frames come at all */
+  await new Promise(res => { const end = () => { if(!done){ done = true; res(); } }; const f = t => { n++; t - t0 < 8000 ? requestAnimationFrame(f) : end(); }; requestAnimationFrame(f); setTimeout(end, 9000); });
   busy = false;
-  if(document.hidden) return;
-  slowRuns = n / 8 < 30 ? slowRuns + 1 : 0;
+  const secs = (performance.now() - t0) / 1000;
+  if(document.hidden || secs < 7 || n < 20) return;
+  slowRuns = n / secs < 30 ? slowRuns + 1 : 0;
   if(slowRuns < 2) return;
   slowRuns = 0;
   if(cfg.perf === 'full') box.hidden = false;
