@@ -58,6 +58,7 @@ A tile layout you return to from every screen.
   - **Last.fm** shows whatever you are currently scrobbling on last.fm.
   - **Spotify** adds play, pause and skip buttons and shows how much of the song is left.
 - **Large album art:** up to 1200 × 1200, using Apple's iTunes catalogue artwork when it matches.
+- **Moving album covers (beta):** in the Android app, albums that have an animated cover on Apple Music play it in place of the picture. It only plays while Now Playing is on screen, and can be turned off in **Settings → Music**.
 - **Background:** blurred colours taken from the cover; it can also pulse to the song's tempo (BPM).
 - **Lyrics** from LRCLIB.
 - **Clock:** it can move out of the way while music plays.
@@ -223,6 +224,7 @@ The app is a lightweight shell around the same frame. It loads the published pag
 - **In-app Spotify login** through `photoframe://spotify`.
 - **Update check:** when a new app version exists, the frame offers to download it.
 - **Saving backups** to the Downloads folder, and following the tablet's own text size (app 2.0.0 and newer).
+- **Moving album covers** start on their own on every Android version (app 2.1.0, beta).
 
 ### Installing
 1. On the tablet, download **[photo-frame.apk](https://github.com/l1vef4stdieyoung/photo-frame/releases/latest/download/photo-frame.apk)** from the latest release.
@@ -249,7 +251,7 @@ Use **Settings → Advanced → Report a problem**. It prepares a GitHub issue w
 - **Your photos are never uploaded anywhere.** They're read and resized on the device.
 - **Data goes straight to the services you use.** The frame talks directly to the services you enable, and only sends them what they need (your city's coordinates for the weather; your Last.fm username and key; Spotify login tokens; the song's artist and title for artwork, lyrics and tempo).
 
-Services that may be contacted: Open-Meteo (weather, city search), OpenWeatherMap (if chosen), MeteoAlarm (official warnings, Android app), the US National Weather Service (US warnings), Nager.Date (public holidays), RainViewer and OpenStreetMap (radar), Last.fm, Spotify, Apple iTunes Search (artwork), LRCLIB (lyrics), Deezer (tempo), Wikimedia Commons (picture of the day), nameday.abalin.net (name days), BigDataCloud ("Use my location" and region lookup), and your calendar's server.
+Services that may be contacted: Open-Meteo (weather, city search), OpenWeatherMap (if chosen), MeteoAlarm (official warnings, Android app), the Apple Music website (moving album covers, Android app), the US National Weather Service (US warnings), Nager.Date (public holidays), RainViewer and OpenStreetMap (radar), Last.fm, Spotify, Apple iTunes Search (artwork), LRCLIB (lyrics), Deezer (tempo), Wikimedia Commons (picture of the day), nameday.abalin.net (name days), BigDataCloud ("Use my location" and region lookup), and your calendar's server.
 
 ---
 
@@ -271,7 +273,7 @@ Services that may be contacted: Open-Meteo (weather, city search), OpenWeatherMa
 - **One file:** the whole frame is a single self-contained HTML file (HTML, CSS and JavaScript, no build step), so it's easy to host anywhere and to edit.
 - **Offline:** a small **service worker** keeps a copy of the frame. It always asks the server for a newer version first, so updates arrive on the next reload, and the frame still starts without internet.
 - **Version check:** `docs/version.json` tells running frames that a new version exists (`web`) and which Android app version is current (`apk`).
-- **Beta channel:** `docs/beta/` holds the beta copy with its own `version.json`. Frames with beta updates on are sent there when they load; `docs/404.html` sends them back if the beta copy is missing.
+- **Beta channel:** `docs/beta/` holds the beta copy with its own `version.json`. Frames with beta updates on are sent there when they load; `docs/404.html` sends them back if the beta copy is missing. An app version can be released to beta only too: when the `release-channel` file says `beta`, GitHub publishes it as a pre-release and only `docs/beta/version.json` offers it. The publisher's *Beta only* box and *Promote beta to everyone* button handle this.
 - **The Android app** is a Capacitor shell that loads the hosted page. Its native `Frame` plugin provides `setBrightness`, `httpGet` (network requests without browser restrictions), `getInfo` (app version, device details and the system text size), `openUrl`, `requestOverlay`, `saveFile` (backups to Downloads) and the light sensor (`startLight`, `getLight`, `stopLight`). A boot receiver starts it after a restart. The page detects the app (`isApp()`) and uses these features only when they're available, so the same file works everywhere.
 - **Builds:** GitHub Actions builds a signed APK whenever the app shell changes, and publishes it as `photo-frame.apk` on the latest release.
 
@@ -332,6 +334,7 @@ capacitor.config.json app id, hosted address, user-agent tag
 - **Song tempo:** this comes from Deezer, which doesn't have it for every song. Those songs simply don't pulse. The tempo is kept in a calm 70–140 BPM range, so it may show half or double the real value.
 - **Official warnings:** MeteoAlarm (Europe) only works in the Android app, because it blocks web pages. Outside Hungary the frame matches your area by place name, which doesn't always succeed; then only forecast-based warnings are shown. The US alerts work everywhere.
 - **Spotify controls** need Spotify Premium.
+- **Moving album covers** only work in the Android app, because Apple's album pages refuse requests from other websites. There's no official free way to get them: the frame reads the public Apple Music album page, so it may stop working if Apple changes that page. Each moving cover uses a few MB of data.
 - **iPhone and iPad:** there's no native app. Use the installed web app.
 
 ---

@@ -116,12 +116,19 @@ function Bump-Patch([string]$v) {
 }
 
 function Get-BetaVersion { if (Test-Path $BetaVersion) { return ((Read-Text $BetaVersion) | ConvertFrom-Json).web } return '' }
+$LatestApkUrl = 'https://github.com/' + ((Get-SiteInfo).Owner) + '/' + ((Get-SiteInfo).Name) + '/releases/latest/download/photo-frame.apk'
+function Get-BetaJson { if (Test-Path $BetaVersion) { return (Read-Text $BetaVersion) | ConvertFrom-Json } return $null }
+function Set-BetaJson([string]$Web, [string]$Apk, [string]$ApkUrl) {
+    if (-not (Test-Path $BetaDir)) { New-Item -ItemType Directory -Path $BetaDir | Out-Null }
+    Write-Text $BetaVersion "{`n  `"web`": `"$Web`",`n  `"apk`": `"$Apk`",`n  `"apkUrl`": `"$ApkUrl`"`n}`n"
+}
 # Writes docs/beta/ (the page, its version.json and copies of the files the page needs)
 function Write-Beta([string]$Html, [string]$Version) {
     if (-not (Test-Path $BetaDir)) { New-Item -ItemType Directory -Path $BetaDir | Out-Null }
     Write-Text $BetaIndex $Html
-    $j = Get-Versions
-    Write-Text $BetaVersion "{`n  `"web`": `"$Version`",`n  `"apk`": `"$($j.apk)`",`n  `"apkUrl`": `"$($j.apkUrl)`"`n}`n"
+    # keep a beta app version that is waiting on beta; otherwise use the normal one
+    $j = Get-Versions; $b = Get-BetaJson
+    if ($b -and $b.apk) { Set-BetaJson $Version $b.apk $b.apkUrl } else { Set-BetaJson $Version $j.apk $j.apkUrl }
     foreach ($f in @('sw.js', 'manifest.webmanifest', 'icon-192.png', 'icon-512.png', 'icon-maskable-512.png')) {
         $src = Join-Path $Docs $f
         if (Test-Path $src) { Copy-Item $src (Join-Path $BetaDir $f) -Force }
@@ -156,6 +163,20 @@ function Promote-Beta {
     $v = Get-BetaVersion
     Copy-Item $BetaIndex $IndexPath -Force
     Set-VersionJson -Web $v
+    $b = Get-BetaJson; $j = Get-Versions
+    if ($b -and $b.apk -and $b.apk -ne $j.apk) {
+        Set-VersionJson -Apk $b.apk
+        Set-BetaJson $b.web $b.apk $LatestApkUrl
+        Log "App $($b.apk) is now offered to everyone too."
+        $gh = (Get-Command gh -ErrorAction SilentlyContinue).Source
+        if (-not $gh -and (Test-Path 'C:\Program Files\GitHub CLI\gh.exe')) { $gh = 'C:\Program Files\GitHub CLI\gh.exe' }
+        if ($gh) {
+            & $gh release edit ("v" + $b.apk) --repo ((Get-SiteInfo).Owner + '/' + (Get-SiteInfo).Name) --prerelease=false --latest 2>&1 | ForEach-Object { Log "$_" }
+            Log "GitHub release v$($b.apk) is now the latest release."
+        } else {
+            Log "IMPORTANT: on GitHub, open release v$($b.apk), untick 'Set as a pre-release', tick 'Set as the latest release' and save."
+        }
+    }
     return $v
 }
 
@@ -255,8 +276,9 @@ Add-Guide '      **Fixed**'
 Add-Guide '      - A bug where ...'
 Add-Guide '      **Added**'
 Add-Guide '      - ...'
-Add-Guide '3. "Release app update". This also sends any other changed files. GitHub builds the APK in about 3 minutes, then tablets show "App update available".'
-Add-Guide '4. "Download latest APK to PC" if you want your own copy.'
+Add-Guide '3. Want to try it on your tablet first? Tick "Beta only". Only frames with beta updates are offered it; "Promote beta to everyone" (Frame update tab) later gives it to everyone too.'
+Add-Guide '4. "Release app update". This also sends any other changed files. GitHub builds the APK in about 3 minutes, then tablets show "App update available".'
+Add-Guide '5. "Download latest APK to PC" if you want your own copy.'
 
 Add-Guide 'THE BUTTONS AT THE BOTTOM' $true
 Add-Guide '- Open website: the frame in your browser.   - Open GitHub: the repository.'
@@ -333,7 +355,7 @@ $promBtn.Add_Click({
         Busy $true
         $v = Promote-Beta
         Log "Beta version $v copied to docs/index.html"
-        if (Commit-And-Push @('docs/index.html', 'docs/version.json') "Frame $v for everyone") { Wait-Live $v }
+        if (Commit-And-Push @('docs/index.html', 'docs/version.json', 'docs/beta/version.json') "Frame $v for everyone") { Wait-Live $v }
         Refresh-All
     } catch { Fail $_ } finally { Busy $false }
 })
@@ -373,6 +395,8 @@ $t3 = New-Object System.Windows.Forms.TabPage; $t3.Text = 'App release'; $tabs.T
 $curApp = New-Label $t3 '' 14 14 770
 New-Label $t3 'New app version:' 14 52 | Out-Null
 $appVer = New-Box $t3 180 52 120; $appVer.Anchor = 'Top,Left'
+$appBeta = New-Object System.Windows.Forms.CheckBox; $appBeta.Text = 'Beta only (only frames with beta updates are offered it)'
+$appBeta.Location = New-Object System.Drawing.Point(316, 53); $appBeta.Size = New-Object System.Drawing.Size(470, 26); $t3.Controls.Add($appBeta)
 New-Label $t3 'Description:' 14 94 | Out-Null
 $msg3 = New-Box $t3 180 94 604
 New-Label $t3 'Release notes:' 14 134 | Out-Null
@@ -388,13 +412,23 @@ $rel.Add_Click({
     try {
         $v = $appVer.Text.Trim()
         if ($v -notmatch '^\d+\.\d+\.\d+$') { throw 'The app version should look like 1.0.1' }
-        $a = [System.Windows.Forms.MessageBox]::Show("Release app version $v?`nGitHub will build a new APK and the tablet will offer it.", 'photo-frame publisher', 'YesNo', 'Question')
+        $who = if ($appBeta.Checked) { 'frames with beta updates will offer it (a GitHub pre-release)' } else { 'every frame will offer it' }
+        $a = [System.Windows.Forms.MessageBox]::Show("Release app version $v?`nGitHub will build a new APK and $who.", 'photo-frame publisher', 'YesNo', 'Question')
         if ($a -ne 'Yes') { return }
         Busy $true
         $g = Read-Text $GradlePath
         $g = [regex]::Replace($g, 'versionName "[^"]+"', "versionName `"$v`"", 1)
         Write-Text $GradlePath $g
-        Set-VersionJson -Apk $v
+        $b = Get-BetaJson
+        $bweb = if ($b) { $b.web } else { (Get-Versions).web }
+        if ($appBeta.Checked) {
+            Write-Text (Join-Path $Repo 'release-channel') "beta`n"
+            Set-BetaJson $bweb $v ('https://github.com/' + (Get-SiteInfo).Owner + '/' + (Get-SiteInfo).Name + "/releases/download/v$v/photo-frame.apk")
+        } else {
+            Write-Text (Join-Path $Repo 'release-channel') "stable`n"
+            Set-VersionJson -Apk $v
+            if ($b) { Set-BetaJson $bweb $v $LatestApkUrl }
+        }
         $notesPath = Join-Path $Repo 'release-notes.md'
         if ($notes3.Text.Trim()) { Write-Text $notesPath ($notes3.Text.Trim() -replace "`r`n", "`n") }
         elseif (Test-Path $notesPath) { Remove-Item $notesPath }

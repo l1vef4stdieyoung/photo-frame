@@ -10,6 +10,7 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - 'release-notes.md'
+      - 'release-channel'
       - '.github/workflows/android.yml'
   workflow_dispatch:
 
@@ -65,10 +66,14 @@ jobs:
           GH_TOKEN: ${{ github.token }}
         run: |
           TAG="v${{ steps.v.outputs.name }}"
+          # release-channel says "beta" for a release only beta frames are offered (a GitHub pre-release)
+          CH=$(tr -d '[:space:]' < release-channel 2>/dev/null || true)
+          if [ "$CH" = "beta" ]; then FLAGS=(--prerelease --latest=false); else FLAGS=(--latest); fi
           if gh release view "$TAG" >/dev/null 2>&1; then
             gh release upload "$TAG" photo-frame.apk --clobber
             if [ -s release-notes.md ]; then gh release edit "$TAG" --notes-file release-notes.md; fi
+            gh release edit "$TAG" "${FLAGS[@]}"
           else
             if [ -s release-notes.md ]; then NOTES=(--notes-file release-notes.md); else NOTES=(--notes "Android app $TAG (build ${{ github.run_number }}). Install photo-frame.apk on the tablet."); fi
-            gh release create "$TAG" photo-frame.apk --title "photo-frame $TAG" "${NOTES[@]}" --latest
+            gh release create "$TAG" photo-frame.apk --title "photo-frame $TAG" "${NOTES[@]}" "${FLAGS[@]}"
           fi

@@ -22,6 +22,8 @@ public class MainActivity extends BridgeActivity {
         super.onCreate(savedInstanceState);
         // a photo frame never goes to sleep on its own
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+        // muted videos (moving album covers) may start without a tap on every Android version
+        getBridge().getWebView().getSettings().setMediaPlaybackRequiresUserGesture(false);
         hideSystemBars();
         handleLink(getIntent(), 1500);
     }
