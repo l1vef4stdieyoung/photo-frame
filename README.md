@@ -7,6 +7,7 @@ Clock / Weather / Music display app for android or anything with a html file.
 </p>
 
 <p align="center">
+<a href="https://l1vef4stdieyoung.github.io/photo-frame/?demo"><b>Try the demo</b></a> ·
 <a href="https://l1vef4stdieyoung.github.io/photo-frame/"><b>Open it in your browser</b></a> ·
 <a href="https://github.com/l1vef4stdieyoung/photo-frame/releases/latest/download/photo-frame.apk"><b>Download the Android app</b></a>
 </p>
@@ -98,11 +99,17 @@ Pick whichever suits your device.
 
 | Way | Best for | How |
 |---|---|---|
+| **Demo** | a quick look, no setup | Open **https://l1vef4stdieyoung.github.io/photo-frame/?demo** |
 | **Browser** | trying it out, any device | Open **https://l1vef4stdieyoung.github.io/photo-frame/** |
 | **Installed web app** | iPad, any tablet | Open the link, then *Add to Home screen* (Safari: Share button; Chrome: ⋮ menu). It opens full screen and works offline. |
 | **Android app** | a dedicated Android wall tablet | Install the APK (see [The Android app](#the-android-app)) for start on boot, real brightness control and more. |
 
 
+
+### The demo
+The demo link opens the frame ready to go, without setup: sample photos with their camera details, a made-up song playing with artwork and lyrics, a demo calendar, and live weather for Budapest. Look around, open Settings and change anything. Nothing is saved, and your own settings and photos (if you already use the frame in this browser) aren't touched. *Exit demo* goes back to the normal frame.
+
+The demo photos are public-domain (CC0) pictures from Wikimedia Commons; the song, artist, lyrics and covers were made up for the demo. Details are in [docs/demo/CREDITS.md](docs/demo/CREDITS.md).
 ---
 
 ## First-run setup
