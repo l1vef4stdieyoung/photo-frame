@@ -95,7 +95,7 @@ A tile layout you return to from every screen.
 - **PIN lock:** a 4-digit PIN in front of Settings and setup, so children or guests can't change anything. It's a simple lock, not real security.
 - **Backup and restore:** save your settings to a file (Downloads in the app) or copy them as a code, and restore them on another device or after a reinstall.
 - **Languages:** English and Hungarian, switchable at any time.
-- **Light performance mode for slow tablets:** no frosted-glass blur, lower frame rates and smaller images. It's chosen automatically on weak devices, based on the device detected in setup.
+- **Light performance mode for slow tablets:** no frosted-glass blur, lower frame rates and smaller images. It's chosen automatically on weak devices, based on the device detected in setup. The frame also checks now and then how smoothly it runs: in Automatic mode a slow device switches to Light by itself, and with Best visuals chosen it offers to switch (beta).
 
 ---
 

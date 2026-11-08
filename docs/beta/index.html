@@ -1192,8 +1192,17 @@ body.lite #bgart.swirl i:nth-child(1),body.lite #bgart.swirl i:nth-child(2){anim
 #bgart.swirl.slow i:nth-child(2){animation-name:d2,swirlslow}
 #bgart.swirl.slow i:nth-child(3){animation-name:d3,swirlslow}
 #bgart.swirl.slow i:nth-child(4){animation-name:d4,swirlslow}
-#bgart.swirl .beatfx{animation:beatp var(--bt,.5s) cubic-bezier(.2,.7,.3,1) var(--bdel,0s) infinite}
+@keyframes beatsoft{0%{opacity:.55;transform:scale(1.04)}60%{opacity:.1}100%{opacity:0;transform:scale(1)}}
+#bgart.swirl .beatfx{animation:beatsoft var(--bt,.5s) cubic-bezier(.2,.7,.3,1) var(--bdel,0s) infinite}
 #bgart.swirl.slow .beatfx{animation:none;opacity:0}
+
+/* ===== v46.1: "running slowly" question ===== */
+#perfask{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:350;display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 24px);padding:14px 16px 14px 20px;border-radius:22px;background:rgba(18,18,22,.92);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:.95rem;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+#perfask[hidden]{display:none}
+#perfask p{margin:0;max-width:34em;line-height:1.4}
+#perfask .row{display:flex;gap:10px}
+#perfask button{min-height:44px;padding:0 18px;border-radius:99px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;font:inherit}
+#perfask button.pri{background:#fff;color:#111;border-color:#fff;font-weight:600}
 </style>
 </head>
 <body class="idle">
@@ -1875,6 +1884,10 @@ const HU = Object.assign(Object.create(null), {
   "Where are you?": "Hol vagy?",
   "Used for weather, sunrise, sunset and the moon. Currently:": "Az időjáráshoz, a napkeltéhez, a napnyugtához és a Holdhoz használjuk. Jelenleg:",
   "Search for a city": "Város keresése",
+  /* v46.1 performance */
+  "Best visuals is making this device run slowly. Switch to Automatic? It uses Light mode here: no frosted glass and fewer effects, but everything runs smoothly.": "A legszebb megjelenés lelassítja ezt az eszközt. Átváltasz automatikusra? Itt a könnyített módot használja: nincs üveghatás és kevesebb az effekt, de minden simán fut.",
+  "Switch": "Átváltás", "Keep Best visuals": "Maradjon a legszebb megjelenés",
+  "Switched to Automatic (Light mode on this device).": "Átváltva automatikusra (ezen az eszközön könnyített mód).", "Switched to Light mode, because this device was running slowly.": "Átváltva könnyített módra, mert az eszköz lassan futott.",
   /* v46 beat + brightness */
   "Background to the beat": "Háttér a zene ütemére", "Tempo": "Tempó", "Microphone": "Mikrofon", "Off": "Ki",
   "Tempo (the song's speed)": "Tempó (a dal sebessége)", "Spotify (lines up with the song's position)": "Spotify (a dal pozíciójához igazodik)", "Microphone (listens to the music in the room)": "Mikrofon (a szobában szóló zenét hallgatja)",
@@ -2454,7 +2467,7 @@ const calm = () => cfg.anim === false || RM.matches;
 /* Light mode: automatic on low-core / low-memory devices, or forced in Settings */
 const LITE_AUTO = (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 3;
 let LITE = false;
-function applyPerf(){ LITE = cfg.perf === 'lite' || (cfg.perf !== 'full' && LITE_AUTO); document.body.classList.toggle('lite', LITE); }
+function applyPerf(){ LITE = cfg.perf === 'lite' || (cfg.perf !== 'full' && (LITE_AUTO || !!cfg.autoLite)); document.body.classList.toggle('lite', LITE); }
 /* writes text only when its English source changed (avoids DOM churn and re-translation every second) */
 function setText(el, s){ if(el && el._src !== s){ el._src = s; el.textContent = s; } }
 /* True while a full-screen layer (Home, clock screen, away mode, setup) hides the views, or the tab is hidden */
@@ -7066,6 +7079,43 @@ const ask = () => { if(window.beatMicTest) beatMicTest().then(err => { const i =
 $('#beatmode').addEventListener('change', e => { if(e.target.value === 'mic') ask(); });
 $('#setup').addEventListener('click', e => { if(e.target.closest('[data-k=beatMode][data-v=mic]')) ask(); });
 setInterval(() => { if($('#dlg').open && window.beatStatus) $('#beatinfo').textContent = $('#beatmode').value === 'off' ? 'Off' : beatStatus(); }, 1500);
+})();
+</script>
+<script>
+/* =====================================================================
+   v46.1: performance check. Now and then the frame measures how smoothly
+   it runs. In Automatic mode a slow device switches to Light by itself;
+   with Best visuals chosen, it asks once whether to switch.
+   ===================================================================== */
+(() => {
+const store = () => { try { localStorage.setItem('pf', JSON.stringify(cfg)); } catch {} };
+const toast = m => { const t = $('#toast'); if(!t) return; t.textContent = m; t.classList.add('show'); clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove('show'), 4200); };
+const box = document.createElement('div'); box.id = 'perfask'; box.hidden = true;
+box.innerHTML = '<p>Best visuals is making this device run slowly. Switch to Automatic? It uses Light mode here: no frosted glass and fewer effects, but everything runs smoothly.</p><div class="row"><button type="button" class="pri" data-a="lite">Switch</button><button type="button" data-a="keep">Keep Best visuals</button></div>';
+document.body.appendChild(box);
+box.addEventListener('click', e => {
+  const b = e.target.closest('button'); if(!b) return;
+  box.hidden = true;
+  if(b.dataset.a === 'lite'){ cfg.perf = 'auto'; cfg.autoLite = 1; applyPerf(); store(); toast('Switched to Automatic (Light mode on this device).'); }
+  else { cfg.perfKeep = 1; store(); }
+});
+let slowRuns = 0, busy = false;
+async function sample(){
+  if(busy || LITE || cfg.perfKeep || document.hidden || !$('#setup').hidden || $('#dlg').open || !box.hidden || window.DEMO) return;
+  busy = true;
+  let n = 0; const t0 = performance.now();
+  await new Promise(res => { const f = t => { n++; t - t0 < 8000 ? requestAnimationFrame(f) : res(); }; requestAnimationFrame(f); });
+  busy = false;
+  if(document.hidden) return;
+  slowRuns = n / 8 < 30 ? slowRuns + 1 : 0;
+  if(slowRuns < 2) return;
+  slowRuns = 0;
+  if(cfg.perf === 'full') box.hidden = false;
+  else { cfg.autoLite = 1; applyPerf(); store(); toast('Switched to Light mode, because this device was running slowly.'); }
+}
+setTimeout(sample, 30000); setInterval(sample, 60000);
+/* choosing Best visuals again in Settings after being asked means: keep it */
+$('#save').addEventListener('click', () => { if($('#perf').value === 'full' && cfg.perfKeep === undefined && cfg.autoLite) { cfg.perfKeep = 1; store(); } });
 })();
 </script>
 </body>
