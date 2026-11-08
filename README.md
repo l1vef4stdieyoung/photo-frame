@@ -215,7 +215,7 @@ The app is a lightweight shell around the same frame. It loads the published pag
 - **Always on and full screen:** the screen never sleeps, and the status and navigation bars are hidden.
 - **In-app Spotify login** through `photoframe://spotify`.
 - **Update check:** when a new app version exists, the frame offers to download it.
-- **Saving backups** to the Downloads folder, and following the tablet's own text size (app 1.3.0 and newer).
+- **Saving backups** to the Downloads folder, and following the tablet's own text size (app 2.0.0 and newer).
 
 ### Installing
 1. On the tablet, download **[photo-frame.apk](https://github.com/l1vef4stdieyoung/photo-frame/releases/latest/download/photo-frame.apk)** from the latest release.
