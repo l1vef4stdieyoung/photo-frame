@@ -6098,7 +6098,7 @@ async function lookupBpm(artist, title){
 /* ---------------- v46: the Now Playing colours swirl to the beat.
    Where the beats fall comes from the song's tempo (Deezer), the song position (Spotify) or the microphone. */
 const beatMode = () => ['off', 'tempo', 'spotify', 'mic'].includes(cfg.beatMode) ? cfg.beatMode : 'tempo';
-const BT = { t0: Date.now(), bpm: 0, src: 'tempo', on: false, setT0: 0, setPer: 0, setAt: 0 };
+const BT = { t0: Date.now(), bpm: 0, src: 'tempo', on: false, setT0: 0, setPer: 0, setAt: 0, rotT0: 0, rotPer: 0, rotAt: 0 };
 const MIC = { st: null, ac: null, an: null, node: null, buf: null, prev: null, hist: [], onsets: [], lastOn: 0, heard: 0, iv: 0, err: '', failAt: 0, busy: false };
 const bpmNow = () => curBpm || BT.bpm;
 /* which clock the beats follow right now */
@@ -6115,13 +6115,19 @@ function beatSync(force){
   if(!(bpm > 0)) return;
   const per = 60000 / bpm, t = Date.now();
   if(BT.src === 'spotify' && SP.prog) BT.t0 = SP.prog.at - SP.prog.ms;   /* the beat grid starts with the song */
-  let drift = ((BT.t0 - BT.setT0) % per + per) % per; if(drift > per / 2) drift -= per;
-  if(!force && per === BT.setPer && Math.abs(drift) < 60) return;
-  if(!force && t - BT.setAt < 3000 && per === BT.setPer) return;
-  const rot = per * 32, ph = ((t - BT.t0) % rot + rot) % rot, phb = ((t - BT.t0) % per + per) % per;
-  bg.style.setProperty('--rd', (rot / 1000).toFixed(3) + 's'); bg.style.setProperty('--rdel', (-ph / 1000).toFixed(3) + 's');
-  bg.style.setProperty('--bt', (per / 1000).toFixed(3) + 's'); bg.style.setProperty('--bdel', (-phb / 1000).toFixed(3) + 's');
-  BT.setT0 = BT.t0; BT.setPer = per; BT.setAt = t;
+  const off = (a, b, m) => { let d = ((a - b) % m + m) % m; return d > m / 2 ? d - m : d; };
+  /* the beat flash is a small layer: keep it closely in step (at most every 3 s) */
+  if(force || per !== BT.setPer || (Math.abs(off(BT.t0, BT.setT0, per)) > 60 && t - BT.setAt > 3000)){
+    const phb = ((t - BT.t0) % per + per) % per;
+    bg.style.setProperty('--bt', (per / 1000).toFixed(3) + 's'); bg.style.setProperty('--bdel', (-phb / 1000).toFixed(3) + 's');
+    BT.setT0 = BT.t0; BT.setPer = per; BT.setAt = t;
+  }
+  /* re-timing the big colour layers costs a stutter on slow tablets, so only when the tempo changes or they drift clearly (at most every 30 s) */
+  if(force || per !== BT.rotPer || (Math.abs(off(BT.t0, BT.rotT0, per)) > 150 && t - BT.rotAt > 30000)){
+    const rot = per * 32, ph = ((t - BT.t0) % rot + rot) % rot;
+    bg.style.setProperty('--rd', (rot / 1000).toFixed(3) + 's'); bg.style.setProperty('--rdel', (-ph / 1000).toFixed(3) + 's');
+    BT.rotT0 = BT.t0; BT.rotPer = per; BT.rotAt = t;
+  }
 }
 /* ---- microphone: finds the beats in the bass of the music playing in the room. Nothing is recorded or sent. */
 function micTick(){
@@ -6198,9 +6204,9 @@ setInterval(applyBeat, 1000);
 function trackChanged(artist, title){
   const key = (artist || '') + '|' + (title || '');
   if(key === curKey) return;
-  curKey = key; curBpm = 0; BT.bpm = 0; BT.t0 = Date.now(); BT.setPer = 0; MIC.onsets = []; applyBeat();
+  curKey = key; curBpm = 0; BT.bpm = 0; BT.t0 = Date.now(); BT.setPer = BT.rotPer = 0; MIC.onsets = []; applyBeat();
   if(!artist || !title || /Nothing is playing|not connected|turned off|Last.fm is not configured|No tracks found/i.test(title + ' ' + artist)) return;
-  lookupBpm(artist, title).then(b => { if(curKey === key){ curBpm = b; BT.setPer = 0; applyBeat(); } });
+  lookupBpm(artist, title).then(b => { if(curKey === key){ curBpm = b; BT.setPer = BT.rotPer = 0; applyBeat(); } });
 }
 const _setBig = setBig;
 setBig = function(o){ const r = _setBig.apply(this, arguments); trackChanged(o.artist, o.title); return r; };
