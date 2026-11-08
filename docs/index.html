@@ -724,8 +724,8 @@ body.vmusic:not(.clock-up) #bart{width:min(46vh,30vw);height:min(46vh,30vw)}
 .f11 .au i:nth-child(3){background:radial-gradient(closest-side,hsl(calc(var(--h) - 22) 70% 40%),hsl(calc(var(--h) - 22) 70% 40% / 0));opacity:.5}
 /* gradient home backgrounds drift with a GPU transform instead of repainting background-position */
 #home{overflow:hidden}
-.hm-bg.grad{inset:-20%;background-size:100% 100%;animation:bgdrift 60s ease-in-out infinite alternate;will-change:transform}
-@keyframes bgdrift{from{transform:translate(-5%,-4%)}to{transform:translate(5%,4%)}}
+.hm-bg.grad{inset:-5%;background-size:100% 100%;animation:bgdrift 60s ease-in-out infinite alternate;will-change:transform}
+@keyframes bgdrift{from{transform:translate(-3%,-2%)}to{transform:translate(3%,2%)}}
 /* nothing animates behind a full-screen overlay */
 body.covered #bgart i,body.covered.vmusic #bart{animation-play-state:paused}
 
@@ -980,6 +980,37 @@ dialog.setdlg.ghost{opacity:.12}
   .sd-body{padding:14px 14px 8px}
   .sd-foot{padding:10px 14px max(10px,env(safe-area-inset-bottom))}
 }
+
+/* ===== v42: red night clock face ===== */
+.f12{text-align:center}
+.f12 .t{font-size:min(30vw,52vh);font-weight:200;letter-spacing:-.05em;line-height:.9;color:#a3120c;font-variant-numeric:tabular-nums}
+.f12 .d{margin-top:2.5vh;font-size:clamp(1rem,2.4vw,1.8rem);color:#6e0c08;letter-spacing:.04em}
+#clockscr.redface{background:#000}
+#clockscr.redface button{color:#a3120c;background:rgba(40,0,0,.6);border-color:rgba(163,18,12,.35)}
+#clockscr.redface #ck-name{color:#a3120c;opacity:.8}
+#clockscr.redface .ck-dots b{background:rgba(163,18,12,.3)}
+#clockscr.redface .ck-dots b.on{background:#a3120c}
+/* ===== v42: device card in setup ===== */
+.devcard{display:flex;align-items:center;gap:14px;padding:12px 18px;border-radius:20px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.14)}
+.devcard .ic{width:38px;height:38px;flex:none;stroke-width:1.4;fill:none;stroke:currentColor;stroke-linecap:round}
+.devcard b{display:block;font-size:clamp(1.2rem,2.4vw,1.6rem);font-weight:600}
+.devcard small{display:block;opacity:.65;margin-top:4px;font-size:.92rem}
+#su-bgprev{z-index:0}
+#setup .su-wrap{z-index:1}
+/* ===== v42: colour theme that matches the background ===== */
+:root{--accent:#ffffff;--accent-ink:#111111;--accent-soft:rgba(255,255,255,.14)}
+body.themed .tile .ic,body.themed .hm-foot .ic,body.themed .sd-tabs .ic,body.themed #wnav .ic,body.themed .sd-head h2 .ic,body.themed #bar .ic,body.themed .ck-tools .ic,body.themed .devcard .ic,body.themed .wn-item.now .ic{color:var(--accent)}
+body.themed .chip[aria-pressed=true],body.themed .lang[aria-pressed=true],body.themed #wnav button.on,body.themed .sd-foot .pri,body.themed .su-nav .pri,body.themed #bctl .pp,body.themed .ckp .acts .pri,body.themed .ck-tools button.on,body.themed .bgsw[aria-pressed=true]::before{background-color:var(--accent);color:var(--accent-ink);border-color:var(--accent)}
+body.themed .chip[aria-pressed=true] .ic,body.themed .lang[aria-pressed=true] small,body.themed #wnav button.on .ic{color:var(--accent-ink)}
+body.themed .bgsw[aria-pressed=true]{border-color:var(--accent)}
+body.themed .sd-tabs button.on{background:var(--accent-soft);color:#fff}
+body.themed #bp-fill,body.themed .f1 .bar i,body.themed #rfill,body.themed .su-dots b.on,body.themed .ck-dots b.on,body.themed #swhint b.on{background:var(--accent)}
+body.themed dialog input[type=range],body.themed dialog input[type=checkbox]{accent-color:var(--accent)}
+body.themed .tile{--c:var(--accent-soft)!important}
+body.themed .t-wx.live,body.themed .t-ph.has-img{border-color:var(--accent-soft)}
+body.themed #hm-x .hol{color:var(--accent)}
+body.themed .wn-item.now{background:var(--accent-soft);border-color:var(--accent)}
+body.themed .ck-tools button.on .ic{color:var(--accent-ink)}
 </style>
 </head>
 <body class="idle">
@@ -1187,6 +1218,7 @@ dialog.setdlg.ghost{opacity:.12}
 </div>
 <div id="setup" hidden>
   <div class="su-bg"><i></i><i></i><i></i></div>
+  <div class="hm-bg" id="su-bgprev" hidden></div>
   <div class="su-wrap">
     <div class="su-dots" id="su-dots"></div>
     <div class="su-stage">
@@ -1200,8 +1232,11 @@ dialog.setdlg.ghost{opacity:.12}
         </div>
       </section>
       <section class="su-s">
-        <span class="su-l">Step 1 · Performance</span>
-        <h2>How powerful is this tablet?</h2>
+        <span class="su-l">Step 1 · Your device</span>
+        <h2>What is this device?</h2>
+        <div class="devcard"><svg class="ic" id="su-devic" viewBox="0 0 24 24"></svg><div><b id="su-devname">Detecting…</b><small id="su-devinfo"></small></div></div>
+        <div class="chips" id="su-devtypes"><button class="chip" data-k="deviceType" data-v="tablet">Tablet</button><button class="chip" data-k="deviceType" data-v="phone">Phone</button><button class="chip" data-k="deviceType" data-v="pc">PC</button><button class="chip" data-k="deviceType" data-v="mac">Mac</button><button class="chip" data-k="deviceType" data-v="ipad">iPad</button><button class="chip" data-k="deviceType" data-v="iphone">iPhone</button></div>
+        <span class="su-l">Performance</span>
         <p id="su-perfinfo"></p>
         <div class="perfs">
           <button class="lang" data-k="perf" data-v="auto" type="button"><b>Automatic</b><small>Recommended. Picks the right mode for this device.</small></button>
@@ -1268,7 +1303,7 @@ dialog.setdlg.ghost{opacity:.12}
         <span class="su-l">Home Photos tile shows</span>
         <div class="chips"><button class="chip" data-k="tilePotd" data-v="photos">My photos</button><button class="chip" data-k="tilePotd" data-v="potd">Picture of the day</button><button class="chip" data-k="tilePotd" data-v="both">Both, taking turns</button></div>
         <span class="su-l">Extras</span>
-        <div class="chips"><button class="chip" data-k="nightDim">Dim the screen at night</button><button class="chip" data-k="dynViews">Jump to Sun &amp; Moon at golden hour</button><button class="chip" data-k="seasonal">Holidays, name days &amp; December snow</button><button class="chip" data-k="edgeSwipe">Swipe from the edge to switch screens</button><button class="chip" data-k="wxWarn">Weather warnings</button></div>
+        <div class="chips"><button class="chip" data-k="nightDim">Dim the screen at night</button><button class="chip" data-k="dynViews">Jump to Sun &amp; Moon at golden hour</button><button class="chip" data-k="seasonal">Holidays, name days &amp; December snow</button><button class="chip" data-k="edgeSwipe">Swipe from the edge to switch screens</button><button class="chip" data-k="wxWarn">Weather warnings</button><button class="chip" data-k="themeMatch">Match colours to the background</button></div>
       </section>
       <section class="su-s">
         <svg class="su-ck" viewBox="0 0 100 100"><circle cx="50" cy="50" r="46"/><path d="M30 52l14 14 27-30"/></svg>
@@ -1416,7 +1451,7 @@ dialog.setdlg.ghost{opacity:.12}
         <label class="ck" for="timelapse"><input id="timelapse" type="checkbox"> Play sky timelapse when opening Weather overview</label>
         <small>Runs the sky and sun from midnight to the current hour upon entering Weather.</small>
         <label class="ck" for="dynviews"><input id="dynviews" type="checkbox"> Dynamic view switching (auto-jumps to Sun, Moon, or Weather during celestial events)</label>
-        <small>Opens the Sun view at golden hour, sunrise, sunset and solar noon, the Moon view at moonrise and full moon, and the Weather overview during rain or storms. 10 minutes after the event is over it goes back to Home, unless you picked another screen in the meantime.</small>
+        <small>Opens the Sun view at golden hour, sunrise, sunset and solar noon, the Moon view at moonrise and full moon, and the Weather overview during rain or storms. 5 minutes after the event is over it goes back to Home, unless you picked another screen in the meantime.</small>
         <label class="ck" for="wxwarn"><input id="wxwarn" type="checkbox"> Show weather warnings</label>
         <small>Warnings are worked out from the forecast (strong gusts, heavy rain or snow, storms, freezing rain, heat, severe cold, fog). They are not official HungaroMet warnings.</small>
       </div>
@@ -1427,6 +1462,7 @@ dialog.setdlg.ghost{opacity:.12}
         <h3>Home screen background</h3>
         <div class="bgpick" id="bgpick-set"></div>
         <small id="bgmsg"></small>
+        <label class="ck" for="thememat"><input id="thememat" type="checkbox"> Colour the whole interface to match the background (icons, buttons, highlights)</label>
       </div>
       <div class="sd-card">
         <h3>Calendar</h3>
@@ -1468,7 +1504,7 @@ dialog.setdlg.ghost{opacity:.12}
       </div>
       <div class="sd-card">
         <h3>About</h3>
-        <small>Photo frame v41. Weather data provided by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a>. Lyrics provided by <a href="https://lrclib.net/" target="_blank" rel="noopener">LRCLIB</a>. Radar by RainViewer, map © OpenStreetMap contributors, tempo data from Deezer, picture of the day from Wikimedia Commons.</small>
+        <small>Photo frame v42. Weather data provided by <a href="https://open-meteo.com/" target="_blank" rel="noopener">Open-Meteo.com</a>. Lyrics provided by <a href="https://lrclib.net/" target="_blank" rel="noopener">LRCLIB</a>. Radar by RainViewer, map © OpenStreetMap contributors, tempo data from Deezer, picture of the day from Wikimedia Commons.</small>
       </div>
     </section>
 
@@ -1480,7 +1516,7 @@ dialog.setdlg.ghost{opacity:.12}
 /* ===== v40: Android app bridge =====
    Inside the photo-frame Android app, Capacitor provides window.Capacitor and the native "Frame" plugin.
    In a normal browser none of this exists and everything falls back to plain web behaviour. */
-window.WEB_VERSION = '41.0';
+window.WEB_VERSION = '42.0';
 window.isApp = () => !!((window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform()) || /PhotoFrameApp/.test(navigator.userAgent));
 window.nat = (method, options) => {
   const C = window.Capacitor;
@@ -1515,6 +1551,14 @@ const HU = Object.assign(Object.create(null), {
   "Where are you?": "Hol vagy?",
   "Used for weather, sunrise, sunset and the moon. Currently:": "Az időjáráshoz, a napkeltéhez, a napnyugtához és a Holdhoz használjuk. Jelenleg:",
   "Search for a city": "Város keresése",
+  /* v42 */
+  "Step 1 · Your device": "1. lépés · Az eszközöd", "What is this device?": "Milyen eszköz ez?", "Detecting…": "Felismerés…", "Performance": "Teljesítmény",
+  "Tablet": "Táblagép", "Phone": "Telefon", "PC": "PC", "Mac": "Mac", "iPad": "iPad", "iPhone": "iPhone",
+  "This device looks on the slower side, so Light mode is recommended (Automatic picks it for you).": "Ez az eszköz inkább lassabbnak tűnik, ezért a könnyített mód ajánlott (az Automatikus ezt választja).",
+  "This device looks powerful enough for Best visuals (Automatic picks it for you).": "Ez az eszköz elég erősnek tűnik a legszebb megjelenéshez (az Automatikus ezt választja).",
+  "Night (red)": "Éjszakai (vörös)", "Match colours to the background": "Színek igazítása a háttérhez",
+  "Colour the whole interface to match the background (icons, buttons, highlights)": "Az egész felület színe igazodjon a háttérhez (ikonok, gombok, kiemelések)",
+  "Not connected – Last.fm is used until Spotify is connected": "Nincs csatlakoztatva – amíg a Spotify nincs csatlakoztatva, a Last.fm-et használjuk",
   /* v41 */
   "Screen brightness": "Képernyő-fényerő", "Brightness": "Fényerő", "The tablet's own brightness": "A táblagép saját fényereje",
   "Dim at night (after sunset, until sunrise)": "Sötétítés éjszaka (napnyugtától napkeltéig)", "Dim at night (on a schedule)": "Sötétítés éjszaka (időzítve)",
@@ -1542,9 +1586,9 @@ const HU = Object.assign(Object.create(null), {
   "Automatic switching": "Automatikus váltás", "Now Playing look": "A Most szól nézet megjelenése", "Location": "Helyszín", "Weather screens": "Időjárás-képernyők",
   "Home screen background": "A kezdőlap háttere", "Seasons": "Évszakok", "Time-of-day preview": "Napszak-előnézet", "Debugging": "Hibakeresés", "About": "Névjegy",
   ". It is stored only in this browser.": ". Csak ebben a böngészőben van tárolva.",
-  "Photo frame v41. Weather data provided by": "Képkeret v41. Időjárási adatok:",
+  "Photo frame v42. Weather data provided by": "Képkeret v42. Időjárási adatok:",
   ". Radar by RainViewer, map © OpenStreetMap contributors, tempo data from Deezer, picture of the day from Wikimedia Commons.": ". Radar: RainViewer, térkép: © OpenStreetMap közreműködők, tempóadatok: Deezer, a nap képe: Wikimedia Commons.",
-  "Opens the Sun view at golden hour, sunrise, sunset and solar noon, the Moon view at moonrise and full moon, and the Weather overview during rain or storms. 10 minutes after the event is over it goes back to Home, unless you picked another screen in the meantime.": "Aranyórakor, napkeltekor, napnyugtakor és delelésekor a Nap nézetet, holdkeltekor és teliholdkor a Hold nézetet, eső vagy vihar idején az időjárás-áttekintést nyitja meg. 10 perccel az esemény vége után visszatér a kezdőlapra, hacsak közben nem választottál másik képernyőt.",
+  "Opens the Sun view at golden hour, sunrise, sunset and solar noon, the Moon view at moonrise and full moon, and the Weather overview during rain or storms. 5 minutes after the event is over it goes back to Home, unless you picked another screen in the meantime.": "Aranyórakor, napkeltekor, napnyugtakor és delelésekor a Nap nézetet, holdkeltekor és teliholdkor a Hold nézetet, eső vagy vihar idején az időjárás-áttekintést nyitja meg. 5 perccel az esemény vége után visszatér a kezdőlapra, hacsak közben nem választottál másik képernyőt.",
   "Debug mode (show technical information on every screen)": "Hibakereső mód (technikai információk minden képernyőn)",
   "Shows a panel with live details such as the song’s BPM, frame rate, memory, weather data, photo info and timers. Useful when something does not work as expected.": "Egy panelen élő részleteket mutat, például a dal BPM-jét, a képkockasebességet, a memóriát, az időjárási adatokat, a fotók adatait és az időzítőket. Hasznos, ha valami nem úgy működik, ahogy kellene.",
   "BPM unknown": "BPM ismeretlen",
@@ -1832,6 +1876,8 @@ const PAT = [
   [/^Camera: room level (\d+)%(.*?)(?: → brightness (\d+)%)?$/, (a, b, c) => `Kamera: a szoba fénye ${a}%${b.replace('fixed exposure', 'rögzített expozíció').replace('exposure', 'expozíció')}${c ? ' → fényerő ' + c + '%' : ''}`],
   [/^The camera could not be used: (.+)$/, a => `A kamera nem használható: ${a}`],
   [/^brighter \+(\d+)$/, a => `világosabb +${a}`], [/^darker (-\d+)$/, a => `sötétebb ${a}`],
+  [/^Detected: (.+)$/, a => `Felismerve: ${a.replace(/(\d+) cores/, '$1 mag').replace(/([\d.]+) GB memory/, '$1 GB memória').replace('Android app', 'Android-alkalmazás')}`],
+  [/^(Tablet|Phone|PC|Mac|iPad|iPhone) · (.+)$/, (a, b) => `${tr(a)} · ${b.replace(' computer', ' számítógép')}`],
   [/^(.+), Hungary$/, a => `${a}, Magyarország`]
 ];
 
@@ -1979,7 +2025,7 @@ let big = false, bgT = null, lyOn = false, lyDone = '', lyKey = '', curT = null;
 let firedEvents = new Set(), dynPillTimer = null;
 /* set when a sky event (golden hour, moonrise…) opened a view by itself; used to go back Home afterwards */
 let dynJump = null;
-const DYN_RETURN_MS = 10 * 60000;
+const DYN_RETURN_MS = 5 * 60000;
 let awayMode = false, awayTimer = null;
 
 const isWxView = v => v === 'weather' || v === 'hourly' || v === 'sun' || v === 'moon' || v === 'radar';
@@ -3812,8 +3858,26 @@ function applyHomeBg(){
   el.hidden = id === 'ambient';
   el.className = 'hm-bg ' + (id === 'image' ? 'img' : 'grad');
   if(id === 'image'){ el.style.background = '#0d0c0b url("' + bgImg + '") center/cover no-repeat'; }
-  else if(id !== 'ambient'){ el.style.background = BGS[id]; el.style.backgroundSize = '160% 160%'; }
+  else if(id !== 'ambient'){ el.style.background = BGS[id]; el.style.backgroundSize = ''; }
+  if(window.applyAccent) applyAccent();
 }
+/* shows a background choice right away (Settings: on the Home screen behind it; setup: behind the setup) without saving it */
+function previewBg(st){
+  const paintInto = (layer, amb) => {
+    if(!layer) return;
+    let id = st.id; if(id === 'image' && !st.img) id = 'ambient';
+    if(amb) amb.hidden = id !== 'ambient';
+    layer.hidden = id === 'ambient';
+    layer.className = 'hm-bg ' + (id === 'image' ? 'img' : 'grad');
+    if(id === 'image') layer.style.background = '#0d0c0b url("' + st.img + '") center/cover no-repeat';
+    else if(id !== 'ambient'){ layer.style.background = BGS[id]; layer.style.backgroundSize = ''; }
+  };
+  paintInto($('#hm-bg'), $('#hm-amb'));
+  const inSetup = !$('#setup').hidden;
+  if(inSetup) paintInto($('#su-bgprev'), $('#setup .su-bg'));
+  if(window.applyAccent) applyAccent(st, inSetup && window.suBgForPreview ? suBgForPreview().theme : ($('#dlg').open ? $('#thememat').checked : undefined));
+}
+window.previewBg = previewBg;
 function readBgImage(file){
   return new Promise((res, rej) => {
     const u = URL.createObjectURL(file), im = new Image();
@@ -3845,8 +3909,8 @@ function bgPicker(el, st){
   };
   el.onclick = e => {
     const b = e.target.closest('[data-bg]'); if(!b) return;
-    if(b.dataset.bg === 'new'){ bgPickCb = d => { st.img = d; st.id = 'image'; paint(); }; $('#bgfile').click(); return; }
-    st.id = b.dataset.bg; paint();
+    if(b.dataset.bg === 'new'){ bgPickCb = d => { st.img = d; st.id = 'image'; paint(); previewBg(st); }; $('#bgfile').click(); return; }
+    st.id = b.dataset.bg; paint(); previewBg(st);
   };
   paint();
 }
@@ -3863,6 +3927,7 @@ function commitBg(st){
 let setBgSt = null;
 $('#set').addEventListener('click', () => {
   setBgSt = { id: cfg.homeBg || 'ambient', img: bgImg };
+  window.setBgStForPreview = () => setBgSt;
   $('#bgmsg').textContent = '';
   bgPicker($('#bgpick-set'), setBgSt);
 });
@@ -3936,14 +4001,19 @@ $('#set').addEventListener('click', () => {
   su.addEventListener('click', e => { const b = e.target.closest('[data-lang]'); if(!b) return; setLang(b.dataset.lang); langPaint(); });
   window.openSetup = () => {
     S = { secs: cfg.secs, fade: cfg.fade, showExif: cfg.showExif !== false, live: cfg.live, anim: cfg.anim !== false, dynViews: cfg.dynViews !== false, autoMusic: cfg.autoMusic !== false, keepPhotos: cfg.keepPhotos !== false, nightDim: cfg.dimMode ? cfg.dimMode !== 'off' : !cfg.setup,
-      perf: cfg.perf || 'auto', musicSrc: cfg.musicSrc || (cfg.key ? 'lastfm' : cfg.setup ? 'lastfm' : 'lastfm'), beat: cfg.beat !== false, trans: cfg.trans || 'fade', tilePotd: cfg.tilePotd || 'photos', seasonal: cfg.seasonal !== false, edgeSwipe: cfg.edgeSwipe !== false, wxWarn: cfg.wxWarn !== false };
+      perf: cfg.perf || 'auto', deviceType: cfg.deviceType || '', themeMatch: !!cfg.themeMatch, musicSrc: cfg.musicSrc || (cfg.key ? 'lastfm' : cfg.setup ? 'lastfm' : 'lastfm'), beat: cfg.beat !== false, trans: cfg.trans || 'fade', tilePotd: cfg.tilePotd || 'photos', seasonal: cfg.seasonal !== false, edgeSwipe: cfg.edgeSwipe !== false, wxWarn: cfg.wxWarn !== false };
     cityPicked = !!cfg.city; whereUpd(); $('#su-cityhint').hidden = true;
-    $('#su-perfinfo').textContent = LITE_AUTO ? 'This device looks like a slower tablet, so Automatic will use Light mode.' : 'This device looks powerful enough, so Automatic will use Best visuals.';
+    $('#su-perfinfo').textContent = '';
+    const detect = () => window.detectDevice ? detectDevice().then(d => { if(!S.deviceType){ S.deviceType = d.type; paint(); } showDevice(d); }) : setTimeout(detect, 150);
+    detect();
     $('#su-spclient').value = cfg.spClient || ''; $('#su-spredir').value = isApp() ? 'photoframe://spotify' : location.origin + location.pathname;
     if(window.spStatusText) $('#su-spstatus').textContent = spStatusText();
     $('#su-user').value = cfg.user || ''; $('#su-key').value = cfg.key || ''; $('#su-city').value = ''; $('#su-res').innerHTML = '';
     $('#su-count').textContent = photos.length ? photos.length + ' photos ready' : '';
     suBg = { id: cfg.homeBg || 'ambient', img: bgImg }; bgPicker($('#bgpick-su'), suBg);
+    window.suBgForPreview = () => Object.assign({}, suBg, { theme: !!S.themeMatch });
+    $('#su-bgprev').hidden = true; $('#setup .su-bg').hidden = false;
+    setTimeout(() => { if(suBg.id !== 'ambient') previewBg(suBg); }, 0);
     suWx = { p: cfg.wxProvider || 'om', omKey: cfg.omKey || '', owmKey: cfg.owmKey || '' };
     wxPicker({ box: '#wxp-su', wrap: '#wxkey-su', input: '#su-wxkey', res: '#su-wxres', help: '#su-wxhelp', test: '#su-wxtest' }, suWx);
     paint(); langPaint(); clk(); steps.forEach(s => s.classList.remove('on', 'out')); su.hidden = false; show(0, true);
@@ -4377,7 +4447,11 @@ $('#set').addEventListener('click', () => {
         st(q('.d'), DAY(d));
         const hr = d.getHours();
         st(q('.mood'), hr < 5 ? 'Deep night' : hr < 8 ? 'Dawn' : hr < 11 ? 'Morning' : hr < 14 ? 'Midday' : hr < 17 ? 'Afternoon' : hr < 20 ? 'Golden evening' : 'Night');
-      } }
+      } },
+
+    /* Night (red): a big, dim red clock that does not light up a dark bedroom */
+    { n: 'Night (red)', red: true, b: () => '<div class="f12"><div class="t"></div><div class="d"></div></div>',
+      t(d){ st(q('.t'), pad(d.getHours()) + ':' + pad(d.getMinutes())); st(q('.d'), DAY(d)); } }
   ];
   const ckTile = document.querySelector('.t-ck small'); if(ckTile) ckTile.textContent = faces.length + ' clock faces';
   dots.innerHTML = faces.map(() => '<b></b>').join('');
@@ -4386,6 +4460,7 @@ $('#set').addEventListener('click', () => {
     i = (i + faces.length) % faces.length; cfg.face = i;
     try { localStorage.setItem('pf', JSON.stringify(cfg)); } catch {}
     fc._w = fc._tape = fc._mx = fc._sx = fc._dl = null; fc._i = i; fc.innerHTML = faces[i].b();
+    sc.classList.toggle('redface', !!faces[i].red);
     [...dots.children].forEach((b, j) => b.classList.toggle('on', j === i));
     $('#ck-name').textContent = faces[i].n; faces[i].t(new Date());
   };
@@ -5350,7 +5425,8 @@ async function spConnect(clientId){
   clientId = (clientId || '').trim();
   if(!clientId){ toast('Paste your Spotify Client ID first'); return; }
   if(!isApp() && !/^https:|^http:\/\/127\.0\.0\.1/.test(location.origin)) toast('Spotify only accepts https:// addresses (or http://127.0.0.1). Open the frame from a secure address.');
-  cfg.spClient = clientId; cfg.musicSrc = 'spotify'; saveCfg();
+  /* the music source only becomes Spotify after a successful login (see spCallback) */
+  cfg.spClient = clientId; saveCfg();
   const verifier = rnd(64), state = rnd(16);
   jset('pf-sp-pkce', { verifier, state, at: Date.now() });
   const ch = b64url(await sha256(verifier));
@@ -5468,9 +5544,9 @@ pollFm = function(){
   clearInterval(fmTimer);
   if(cfg.musicSrc === 'none'){ $('#np').hidden = true; handleMusicState(false); setBig({ lbl: '', title: 'Music is turned off', artist: 'Choose a music source in Settings' }); renderSp(); return; }
   if(cfg.musicSrc === 'spotify'){
-    if(spReady()){ spotifyNow(); fmTimer = setInterval(spotifyNow, 4000); }
-    else { $('#np').hidden = true; handleMusicState(false); setBig({ lbl: 'Spotify', title: 'Spotify is not connected', artist: 'Connect it in Settings' }); }
-    renderSp(); return;
+    if(spReady()){ spotifyNow(); fmTimer = setInterval(spotifyNow, 4000); renderSp(); return; }
+    /* Spotify chosen but not connected: keep showing music through Last.fm when that is set up */
+    if(!(cfg.user && cfg.key)){ $('#np').hidden = true; handleMusicState(false); setBig({ lbl: 'Spotify', title: 'Spotify is not connected', artist: 'Connect it in Settings' }); renderSp(); return; }
   }
   renderSp();
   return _pollFm.apply(this, arguments);
@@ -5539,17 +5615,16 @@ $('#set').addEventListener('click', () => {
 function spSetUi(){
   const src = $('#musicsrc').value;
   $('#spset').hidden = src !== 'spotify'; $('#lfmset').hidden = src !== 'lastfm';
-  $('#spstatus').textContent = spReady() ? 'Connected' + (SP.err ? ' · last request failed: ' + SP.err : '') : 'Not connected';
+  $('#spstatus').textContent = spReady() ? 'Connected' + (SP.err ? ' · last request failed: ' + SP.err : '') : (cfg.user && cfg.key ? 'Not connected – Last.fm is used until Spotify is connected' : 'Not connected');
   $('#spstatus').className = 'wxres ' + (spReady() ? 'ok' : '');
   $('#spconnect span').textContent = spReady() ? 'Reconnect Spotify' : 'Connect Spotify';
   $('#spdisconnect').hidden = !spReady();
 }
 $('#musicsrc').onchange = spSetUi;
-$('#spconnect').onclick = () => { cfg.musicSrc = 'spotify'; saveCfg(); spConnect($('#spclient').value); };
+$('#spconnect').onclick = () => spConnect($('#spclient').value);
 $('#spdisconnect').onclick = () => { SP.tok = null; localStorage.removeItem('pf-sp'); spSetUi(); pollFm(); };
 $('#su-spconnect').onclick = () => {
   if(window.setupCommit) setupCommit();
-  cfg.musicSrc = 'spotify'; saveCfg();
   jset('pf-su-resume', window.setupStep ? setupStep() : 4);
   spConnect($('#su-spclient').value);
 };
@@ -5577,7 +5652,7 @@ window.dbgMusic = () => ({ source: cfg.musicSrc, spotifyReady: spReady(), tokenE
    v38.1: debug mode – technical information on every screen
    ===================================================================== */
 (() => {
-const VERSION = 'v41' + (isApp() ? ' (app)' : '');
+const VERSION = 'v42' + (isApp() ? ' (app)' : '');
 const hud = document.createElement('div'); hud.id = 'dbg'; hud.hidden = true; hud.setAttribute('data-nt', '');
 document.body.appendChild(hud);
 const t0 = Date.now();
@@ -5809,6 +5884,133 @@ if(isApp()){
   setTimeout(() => checkApp(false), 90000);
   setInterval(() => checkApp(false), 12 * 3600000);
 }
+})();
+</script>
+<script>
+/* =====================================================================
+   v42: device detection for setup, colour theme matching the background
+   ===================================================================== */
+(() => {
+/* ---------------- device detection */
+const SAMSUNG = { 'SM-T220': 'Galaxy Tab A7 Lite', 'SM-T225': 'Galaxy Tab A7 Lite', 'SM-T227': 'Galaxy Tab A7 Lite', 'SM-T500': 'Galaxy Tab A7', 'SM-T505': 'Galaxy Tab A7', 'SM-T507': 'Galaxy Tab A7',
+  'SM-X200': 'Galaxy Tab A8', 'SM-X205': 'Galaxy Tab A8', 'SM-X110': 'Galaxy Tab A9', 'SM-X115': 'Galaxy Tab A9', 'SM-X210': 'Galaxy Tab A9+', 'SM-X216': 'Galaxy Tab A9+',
+  'SM-T290': 'Galaxy Tab A 8.0', 'SM-T295': 'Galaxy Tab A 8.0', 'SM-T510': 'Galaxy Tab A 10.1', 'SM-T515': 'Galaxy Tab A 10.1', 'SM-P610': 'Galaxy Tab S6 Lite', 'SM-P613': 'Galaxy Tab S6 Lite', 'SM-P615': 'Galaxy Tab S6 Lite', 'SM-X700': 'Galaxy Tab S8', 'SM-X710': 'Galaxy Tab S9' };
+const TYPE_NAMES = { tablet: 'Tablet', phone: 'Phone', pc: 'PC', mac: 'Mac', ipad: 'iPad', iphone: 'iPhone' };
+/* simple outline drawings of each kind of device (24x24, drawn with the icon stroke) */
+const TAB = '<rect x="2.5" y="5" width="19" height="14" rx="2.2"/><path d="M11 16.5h2"/>', PHN = '<rect x="7" y="2.5" width="10" height="19" rx="2.2"/><path d="M11 18.5h2"/>';
+const TYPE_ICONS = { tablet: TAB, ipad: TAB, phone: PHN, iphone: PHN, pc: '<rect x="2.5" y="4" width="19" height="12.5" rx="1.6"/><path d="M9 20.5h6M12 16.5v4"/>', mac: '<rect x="4.5" y="5" width="15" height="10.5" rx="1.4"/><path d="M2 18.5h20"/>' };
+async function detectDevice(){
+  const ua = navigator.userAgent, touch = (navigator.maxTouchPoints || 0) > 1, small = Math.min(screen.width, screen.height);
+  let type = 'pc', os = 'Unknown';
+  if(/iPhone|iPod/.test(ua)){ type = 'iphone'; os = 'iOS'; }
+  else if(/iPad/.test(ua) || (/Macintosh/.test(ua) && touch)){ type = 'ipad'; os = 'iPadOS'; }
+  else if(/Android/.test(ua)){ os = 'Android ' + ((ua.match(/Android ([\d.]+)/) || [])[1] || ''); type = /Mobile/.test(ua) && small < 600 ? 'phone' : 'tablet'; }
+  else if(/Macintosh|Mac OS X/.test(ua)){ type = 'mac'; os = 'macOS'; }
+  else if(/Windows/.test(ua)){ type = 'pc'; os = 'Windows'; }
+  else if(/CrOS/.test(ua)){ type = 'pc'; os = 'ChromeOS'; }
+  else if(/Linux/.test(ua)){ type = touch && small < 600 ? 'phone' : 'pc'; os = 'Linux'; }
+  const d = { type, os, name: '', cores: navigator.hardwareConcurrency || 0, ramGb: navigator.deviceMemory || 0, app: isApp() };
+  if(isApp()){
+    try {
+      const i = await nat('getInfo');
+      if(i.model){
+        const code = String(i.model).toUpperCase(), base = code.replace(/[A-Z]$/, '');
+        const maker = i.manufacturer && !/unknown/i.test(i.manufacturer) ? i.manufacturer.charAt(0).toUpperCase() + i.manufacturer.slice(1) : '';
+        d.name = SAMSUNG[code] || SAMSUNG[base] ? 'Samsung ' + (SAMSUNG[code] || SAMSUNG[base]) + ' (' + i.model + ')' : [maker, i.model].filter(Boolean).join(' ');
+      }
+      if(typeof i.tablet === 'boolean') d.type = i.tablet ? 'tablet' : 'phone';
+      if(i.ramMb) d.ramGb = Math.round(i.ramMb / 1024 * 10) / 10;
+      if(i.cores) d.cores = i.cores;
+      d.lowRam = !!i.lowRam;
+    } catch {}
+  }
+  if(!d.name) d.name = (type === 'pc' || type === 'mac' ? os + ' computer' : os) ;
+  /* slower devices get Light mode: small memory, few cores, or phones/tablets that say so themselves */
+  d.slow = d.lowRam || (d.ramGb && d.ramGb <= 3.2) || (d.cores && d.cores <= 4) || LITE_AUTO;
+  if(type === 'pc' || type === 'mac') d.slow = (d.cores && d.cores <= 2) || (d.ramGb && d.ramGb <= 2);
+  return d;
+}
+window.detectDevice = detectDevice;
+window.showDevice = d => {
+  if(!d) return; window.lastDevice = d;
+  $('#su-devname').textContent = TYPE_NAMES[d.type] + ' · ' + d.name;
+  const bits = [d.os, d.cores ? d.cores + ' cores' : '', d.ramGb ? (d.ramGb >= 1 ? d.ramGb + ' GB memory' : '') : ''].filter(Boolean);
+  $('#su-devinfo').textContent = 'Detected: ' + bits.join(' · ') + (d.app ? ' · Android app' : '');
+  $('#su-devic').innerHTML = TYPE_ICONS[d.type] || TAB;
+  $('#su-perfinfo').textContent = d.slow ? 'This device looks on the slower side, so Light mode is recommended (Automatic picks it for you).' : 'This device looks powerful enough for Best visuals (Automatic picks it for you).';
+  window.lastDevice = d;
+};
+
+$('#su-devtypes').addEventListener('click', e => { const b = e.target.closest('[data-v]'); if(b && window.lastDevice) showDevice(Object.assign({}, lastDevice, { type: b.dataset.v })); });
+
+/* ---------------- colour theme: one accent colour taken from the Home background */
+const PRESET_ACCENT = { ambient: '#9fb4ff', aurora: '#45d6bc', dusk: '#ff9b78', ocean: '#4cc3e0', forest: '#93d67e', ember: '#ff7f4f', lavender: '#c9a6ff', sunrise: '#ffb27c', graphite: '#c9ced8' };
+const hex = (r, g, b) => '#' + [r, g, b].map(v => Math.round(Math.max(0, Math.min(255, v))).toString(16).padStart(2, '0')).join('');
+function rgb2hsl(r, g, b){ r /= 255; g /= 255; b /= 255; const mx = Math.max(r, g, b), mn = Math.min(r, g, b), l = (mx + mn) / 2; let h = 0, s = 0;
+  if(mx !== mn){ const d = mx - mn; s = l > .5 ? d / (2 - mx - mn) : d / (mx + mn); h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h /= 6; }
+  return [h, s, l]; }
+function hsl2rgb(h, s, l){ const f = n => { const k = (n + h * 12) % 12, a = s * Math.min(l, 1 - l); return 255 * (l - a * Math.max(-1, Math.min(k - 3, 9 - k, 1))); }; return [f(0), f(8), f(4)]; }
+/* the most colourful, reasonably bright colour in a picture, made readable on a dark interface */
+function accentFromImage(url){
+  return new Promise(res => {
+    const im = new Image();
+    im.onload = () => {
+      try {
+        const c = document.createElement('canvas'); c.width = 32; c.height = 32;
+        const g = c.getContext('2d', { willReadFrequently: true }); g.drawImage(im, 0, 0, 32, 32);
+        const d = g.getImageData(0, 0, 32, 32).data, bins = {};
+        for(let i = 0; i < d.length; i += 4){
+          const [h, s, l] = rgb2hsl(d[i], d[i + 1], d[i + 2]);
+          if(l < .12 || l > .92) continue;
+          const k = Math.round(h * 24) % 24, w = s * s * (1 - Math.abs(l - .55));
+          const b = bins[k] || (bins[k] = { w: 0, h: 0, s: 0 }); b.w += w; b.h += h * w; b.s += s * w;
+        }
+        const best = Object.values(bins).sort((a, b) => b.w - a.w)[0];
+        if(!best || best.w < .5) return res('#c9ced8');
+        const h = best.h / best.w, s = Math.max(.45, Math.min(.85, best.s / best.w));
+        res(hex(...hsl2rgb(h, s, .66)));
+      } catch { res('#c9ced8'); }
+    };
+    im.onerror = () => res('#c9ced8');
+    im.src = url;
+  });
+}
+const inkFor = c => { const n = parseInt(c.slice(1), 16), r = n >> 16, g = (n >> 8) & 255, b = n & 255; return (.299 * r + .587 * g + .114 * b) > 150 ? '#111111' : '#ffffff'; };
+let accTok = 0;
+/* st = a background choice being previewed ({id, img}); without it the saved background is used. on = override for previews */
+async function applyAccent(st, on){
+  const enabled = on !== undefined ? on : (st && st.theme !== undefined ? st.theme : !!cfg.themeMatch);
+  const tok = ++accTok, body = document.body;
+  if(!enabled){ body.classList.remove('themed'); return; }
+  const id = st ? st.id : (cfg.homeBg || 'ambient'), img = st ? st.img : bgImg;
+  let c = PRESET_ACCENT[id] || PRESET_ACCENT.ambient;
+  if(id === 'image' && img){
+    if(!st && cfg.accentFor === img.length + ':' + img.slice(-40) && cfg.accent) c = cfg.accent;
+    else { c = await accentFromImage(img); if(!st){ cfg.accent = c; cfg.accentFor = img.length + ':' + img.slice(-40); try { localStorage.setItem('pf', JSON.stringify(cfg)); } catch {} } }
+  }
+  if(tok !== accTok) return;
+  const r = document.documentElement.style;
+  r.setProperty('--accent', c); r.setProperty('--accent-ink', inkFor(c));
+  const n = parseInt(c.slice(1), 16); r.setProperty('--accent-soft', 'rgba(' + (n >> 16) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',.26)');
+  body.classList.add('themed');
+}
+window.applyAccent = applyAccent;
+
+/* Settings: live preview of the colour theme; Cancel puts everything back */
+$('#set').addEventListener('click', () => { $('#thememat').checked = !!cfg.themeMatch; });
+$('#thememat').onchange = () => { const st = window.setBgStForPreview ? setBgStForPreview() : null; applyAccent(st, $('#thememat').checked); };
+$('#save').addEventListener('click', () => { cfg.themeMatch = $('#thememat').checked; try { localStorage.setItem('pf', JSON.stringify(cfg)); } catch {} applyAccent(); });
+const undo = () => { applyHomeBg(); applyAccent(); };
+$('#cancel').addEventListener('click', undo);
+$('#dlg').addEventListener('cancel', undo);
+
+/* setup: preview the colour theme chip right away */
+$('#setup').addEventListener('click', e => {
+  const b = e.target.closest('[data-k=themeMatch]'); if(!b) return;
+  setTimeout(() => applyAccent(window.suBgForPreview ? suBgForPreview() : null, b.getAttribute('aria-pressed') === 'true'), 0);
+});
+document.addEventListener('cfgchange', () => { applyHomeBg(); applyAccent(); });
+applyAccent();
 })();
 </script>
 </body>
