@@ -1,3 +1,7 @@
+> [!CAUTION]
+> ## This project has been abandoned.
+> photo-frame is no longer maintained or available to use, and this repository is archived (read-only). See the [end-of-life release](https://github.com/l1vef4stdieyoung/photo-frame/releases/tag/end-of-life) for alternatives and how to get in touch about reviving it.
+
 <p align="center"><img src="docs/icon-192.png" width="96" alt="photo-frame icon"></p>
 
 <h1 align="center">photo-frame</h1>
