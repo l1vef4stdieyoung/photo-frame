@@ -2,30 +2,18 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#0d0c0b">
-<title>photo-frame – discontinued</title>
-<style>
-:root{--bg:#0d0c0b;--ink:#f4f1ec;--soft:rgba(244,241,236,.62)}
-html,body{height:100%;margin:0;background:var(--bg);color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-body{display:flex;align-items:center;justify-content:center;padding:24px;box-sizing:border-box;text-align:center}
-main{max-width:46rem}
-h1{font-weight:300;font-size:clamp(2rem,6vw,4.2rem);letter-spacing:-.03em;line-height:1.08;margin:0 0 1.2rem}
-p{font-size:clamp(.95rem,1.8vw,1.15rem);line-height:1.55;color:var(--soft);margin:0}
-a{color:var(--ink)}
-</style>
-</head>
-<body>
-<main>
-  <h1>This project has been discontinued.</h1>
-  <p>photo-frame has been deprecated and is no longer available to use. Look in the <a href="https://github.com/l1vef4stdieyoung/photo-frame/releases/tag/end-of-life" target="_blank" rel="noopener">release notes</a> for additional options.</p>
-</main>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Photo frame</title>
+<style>html,body{height:100%;margin:0;background:#0d0c0b;color:#fff;font-family:system-ui,sans-serif;display:grid;place-items:center;text-align:center}a{color:#fff}</style>
 <script>
-/* photo-frame is discontinued: remove the offline copy of the old frame, so nothing can show it again */
+/* A frame set to beta updates while there is no beta copy lands here: switch it back to the normal version. */
 (() => {
-  try { if('serviceWorker' in navigator) navigator.serviceWorker.getRegistrations().then(rs => rs.forEach(r => r.unregister())); } catch {}
-  try { if(window.caches) caches.keys().then(ks => ks.forEach(k => caches.delete(k))); } catch {}
+  const p = location.pathname, i = p.indexOf('/beta/');
+  if(i < 0) return;
+  try { const c = JSON.parse(localStorage.getItem('pf') || '{}'); c.channel = 'stable'; localStorage.setItem('pf', JSON.stringify(c)); } catch {}
+  location.replace(p.slice(0, i + 1) + location.search + location.hash);
 })();
 </script>
-</body>
+</head>
+<body><p>Page not found. <a href="/photo-frame/">Open the photo frame</a></p></body>
 </html>
