@@ -1,4 +1,11 @@
 **Fixed**
+- The clock freezing, and not turning red, when the night hours started while the clock screen was open
+- The red night clock staying on in the morning after the frame's nightly restart
+- The moving album cover playing unseen behind Home and the clock, which slowed the tablet down
+- The small music card covering the Moon and Radar screens, and every weather screen on phones
+- The explanation under "Background to the beat" not being translated
+- A crash when Weather opened before the window had a size
+- Calendar events missing from the Home screen on upright phones
 - The tablet running slowly and the screen glitching while the background swirled to the beat
 - The beat flash was too bright
 

@@ -1203,6 +1203,17 @@ body.lite #bgart.swirl i:nth-child(1),body.lite #bgart.swirl i:nth-child(2){anim
 #perfask .row{display:flex;gap:10px}
 #perfask button{min-height:44px;padding:0 18px;border-radius:99px;border:1px solid rgba(255,255,255,.25);background:rgba(255,255,255,.08);color:#fff;font:inherit}
 #perfask button.pri{background:#fff;color:#111;border-color:#fff;font-weight:600}
+
+/* ===== v46.2 ===== */
+#np.nofit,body.vradar #np{display:none!important}
+/* upright screens: the calendar tile is too short for the list under the icon, so the events go beside it */
+@media (orientation:portrait){
+  .t-cal{position:relative}
+  .t-cal .tile-top{width:40%}
+  .t-cal .cal-list{position:absolute;right:clamp(14px,4vw,24px);top:12px;bottom:12px;width:52%;justify-content:flex-start}
+}
+.bgsw.bgimg:not(.has) span,.bgsw.bgnew span{overflow-wrap:anywhere;font-size:.8em}
+@media (max-width:900px),(max-height:500px){#demobar.dim{opacity:0;pointer-events:none}}
 </style>
 </head>
 <body class="idle">
@@ -1704,7 +1715,10 @@ body.lite #bgart.swirl i:nth-child(1),body.lite #bgart.swirl i:nth-child(2){anim
         <small>Shown in the large now playing view while a track is playing. 0 keeps the background still.</small>
         <label for="beatmode">Background to the beat</label>
         <select id="beatmode"><option value="tempo">Tempo (the song's speed)</option><option value="spotify">Spotify (lines up with the song's position)</option><option value="mic">Microphone (listens to the music in the room)</option><option value="off">Off</option></select>
-        <small>The colours swirl with the music and get a push on every beat. <b>Tempo</b> uses the song's speed from Deezer, so it can be a little ahead of or behind the real beat. <b>Spotify</b> also uses where you are in the song (only when the music source is Spotify). <b>Microphone</b> hits the beat exactly when the music plays in the same room; the sound is analysed on this device and never recorded or sent anywhere (Android app 2.2.0 or newer, or a browser). If it can't hear a beat, it falls back to the tempo.</small>
+        <small>The colours swirl with the music and get a push on every beat.</small>
+        <small>Tempo: uses the song's speed from Deezer, so it can be a little ahead of or behind the real beat.</small>
+        <small>Spotify: also uses where you are in the song (only when the music source is Spotify).</small>
+        <small>Microphone: hits the beat exactly when the music plays in the same room. The sound is analysed on this device and never recorded or sent anywhere (Android app 2.2.0 or newer, or a browser). If it can't hear a beat, it falls back to the tempo.</small>
         <p class="sd-cur" id="beatinfo"></p>
         <label class="ck" for="motionart"><input id="motionart" type="checkbox"> Moving album covers (from Apple Music)</label>
         <small id="motioninfo2">When an album has an animated cover on Apple Music, it plays in place of the picture. Android app only (Apple's website can't be read by web pages); uses a few MB of data per album.</small>
@@ -1838,7 +1852,7 @@ body.lite #bgart.swirl i:nth-child(1),body.lite #bgart.swirl i:nth-child(2){anim
 /* ===== v40: Android app bridge =====
    Inside the photo-frame Android app, Capacitor provides window.Capacitor and the native "Frame" plugin.
    In a normal browser none of this exists and everything falls back to plain web behaviour. */
-window.WEB_VERSION = '46.1';
+window.WEB_VERSION = '46.2';
 window.FRAME_CHANNEL = /\/beta\/(index\.html)?$/.test(location.pathname) ? 'beta' : 'stable';
 /* the normal (stable) address of this frame, also used as the Spotify return address */
 window.STABLE_URL = location.origin + location.pathname.replace(/beta\/(index\.html)?$/, '').replace(/index\.html$/, '');
@@ -1884,6 +1898,12 @@ const HU = Object.assign(Object.create(null), {
   "Where are you?": "Hol vagy?",
   "Used for weather, sunrise, sunset and the moon. Currently:": "Az időjáráshoz, a napkeltéhez, a napnyugtához és a Holdhoz használjuk. Jelenleg:",
   "Search for a city": "Város keresése",
+  /* v46.2 */
+  "The colours swirl with the music and get a push on every beat.": "A színek a zenével együtt kavarognak, és minden ütemre lendületet kapnak.",
+  "Tempo: uses the song's speed from Deezer, so it can be a little ahead of or behind the real beat.": "Tempó: a dal Deezerről lekért sebességét használja, ezért kicsit előbbre vagy hátrébb járhat a valódi ütemnél.",
+  "Spotify: also uses where you are in the song (only when the music source is Spotify).": "Spotify: azt is figyelembe veszi, hol tart a dal (csak ha a zeneforrás a Spotify).",
+  "Microphone: hits the beat exactly when the music plays in the same room. The sound is analysed on this device and never recorded or sent anywhere (Android app 2.2.0 or newer, or a browser). If it can't hear a beat, it falls back to the tempo.": "Mikrofon: pontosan eltalálja az ütemet, ha a zene ugyanabban a szobában szól. A hangot ezen az eszközön elemezzük, soha nem rögzítjük és nem küldjük el sehova (2.2.0-s vagy újabb Android-alkalmazás, illetve böngésző). Ha nem hall ütemet, a tempót követi.",
+  "Automatic uses Light mode on this device, because it ran slowly with Best visuals.": "Az Automatikus ezen az eszközön a könnyített módot használja, mert a legszebb megjelenéssel lassan futott.",
   /* v46.1 performance */
   "Best visuals is making this device run slowly. Switch to Automatic? It uses Light mode here: no frosted glass and fewer effects, but everything runs smoothly.": "A legszebb megjelenés lelassítja ezt az eszközt. Átváltasz automatikusra? Itt a könnyített módot használja: nincs üveghatás és kevesebb az effekt, de minden simán fut.",
   "Switch": "Átváltás", "Keep Best visuals": "Maradjon a legszebb megjelenés",
@@ -2559,7 +2579,8 @@ const HH2 = d => String(cfg.hour12 ? d.getHours() % 12 || 12 : d.getHours()).pad
 { const lts = Date.prototype.toLocaleTimeString;
   Date.prototype.toLocaleTimeString = function(l, o){
     if(o && o.hour){ o = Object.assign({}, o); delete o.hour12; if(cfg.hour12){ o.hourCycle = 'h12'; if(o.hour === '2-digit') o.hour = 'numeric'; } else o.hourCycle = 'h23'; }
-    return lts.call(this, l, o);
+    /* 12-hour English is written the American way (4:35 PM, not 4:35 pm) */
+    return lts.call(this, o && o.hour && cfg.hour12 && /^en/.test(String(l || '')) ? 'en-US' : l, o);
   }; }
 /* "18:30" style strings from the weather data */
 const hmFmt = s => { const m = /^(\d{1,2}):(\d{2})$/.exec(s || ''); return m && cfg.hour12 ? new Date(2000, 0, 1, +m[1], +m[2]).toLocaleTimeString(LOC, { hour: '2-digit', minute: '2-digit' }) : s; };
@@ -3184,6 +3205,7 @@ function cloudSprite(tn){
 function draw(move){
   const w = wcv.width, h = wcv.height, c = wxData ? wxData.current.weather_code : 0, k = wkind(c), e = sun.e;
   const tn = tintFor(e).join(',');
+  if(!w || !h) return;   /* the window has no size yet (starting up, rotating): nothing to draw, and drawing would throw */
   cx.clearRect(0, 0, w, h);
   cx.drawImage(skyLayer(w, h, c, e, tn), 0, 0);
   const lum = Math.min(1, Math.max(.35, (e + 8) / 12)), spr = clouds.length ? cloudSprite(tn) : null;
@@ -4089,7 +4111,7 @@ $('#set').onclick = () => {
   $('#fm').value = cfg.fm;
   $('#anim').checked = cfg.anim !== false;
   $('#perf').value = cfg.perf || 'auto';
-  $('#perfinfo').textContent = LITE_AUTO ? 'This device looks like a slower tablet, so Automatic uses Light mode.' : 'Automatic uses Best visuals on this device. Light mode turns off frosted-glass blur, lowers animation frame rates and uses smaller images.';
+  $('#perfinfo').textContent = LITE_AUTO ? 'This device looks like a slower tablet, so Automatic uses Light mode.' : cfg.autoLite ? 'Automatic uses Light mode on this device, because it ran slowly with Best visuals.' : 'Automatic uses Best visuals on this device. Light mode turns off frosted-glass blur, lowers animation frame rates and uses smaller images.';
   $('#elevateclock').checked = cfg.elevateClock !== false;
   $('#timelapse').checked = cfg.timelapse !== false;
   $('#exifopt').checked = cfg.showExif !== false;
@@ -4954,6 +4976,7 @@ $('#set').addEventListener('click', () => {
     [...dots.children].forEach((b, j) => b.classList.toggle('on', j === i));
     $('#ck-name').textContent = faces[i].n; faces[i].t(new Date());
   };
+  window.setClockFace = i => setFace(i);
   window.openClock = () => {
     closeHome(); sc.hidden = false; setFace(cur());
     requestAnimationFrame(() => requestAnimationFrame(() => sc.classList.add('on')));
@@ -5489,8 +5512,9 @@ async function drawTiles(ctx, W, H, z, url){
   await Promise.all(jobs);
 }
 function radarFrame(){
-  const f = rad.frames[rad.i]; if(!f || !f.cv) return;
+  const f = rad.frames[rad.i]; if(!f || !f.cv || !f.cv.width || !f.cv.height) return;
   const cv = $('#rrain'), g = cv.getContext('2d');
+  if(!cv.width || !cv.height) return;
   g.clearRect(0, 0, cv.width, cv.height); g.imageSmoothingEnabled = true; g.drawImage(f.cv, 0, 0, cv.width, cv.height);
   const last = rad.i === rad.frames.length - 1;
   $('#rtime').textContent = fmtT(new Date(f.time * 1000)) + (last ? ' · ' + tr('latest') : '');
@@ -5507,6 +5531,7 @@ function radarPlay(){
 }
 async function radarLoad(){
   const tok = ++rad.tok, W = innerWidth, H = innerHeight, dpr = Math.min(LITE ? 1 : 2, devicePixelRatio || 1), z = 7;
+  if(!W || !H) return;   /* no window size yet; the resize that follows loads the radar */
   const base = $('#rbase'), rain = $('#rrain');
   base.width = W * dpr; base.height = H * dpr; rain.width = Math.round(W * dpr); rain.height = Math.round(H * dpr);
   $('#rmsg').textContent = tr('Loading radar…');
@@ -6723,8 +6748,10 @@ window.applyA11y = applyA11y;
 if(isApp()) nat('getInfo').then(i => { if(i && i.fontScale){ window.__fontScale = +i.fontScale; applyA11y(); } }).catch(() => {});
 applyA11y();
 
-/* ---------------- night screen */
-const N = { on: false, prevFace: null, idx: -1, peekUntil: 0, touch: 0 };
+/* ---------------- night screen
+   The face that was in use before the night is kept in the settings (cfg.nightPrevFace), so it survives
+   the nightly reload and is put back in the morning. */
+const N = { on: false, idx: -1, peekUntil: 0, touch: 0 };
 const inNightWindow = () => {
   if(!cfg.nightMode || cfg.nightMode === 'off') return false;
   const a = hm2m(cfg.nightFrom || '22:30'), b = hm2m(cfg.nightTo || '07:00'), d = new Date(), m = d.getHours() * 60 + d.getMinutes();
@@ -6733,33 +6760,48 @@ const inNightWindow = () => {
 window.nightActive = () => N.on;
 window.nightDark = () => N.on && cfg.nightMode === 'black' && Date.now() >= N.peekUntil && $('#ring').hidden;
 const blk = $('#nightblk');
+const redIdx = () => { if(N.idx < 0 && window.clockFaceIndex) N.idx = clockFaceIndex('Night (red)'); return N.idx; };
+const clockOpen = () => !$('#clockscr').hidden;
 function redClock(){
-  if(N.idx < 0) N.idx = window.clockFaceIndex ? clockFaceIndex('Night (red)') : -1;
-  if(N.idx < 0) return;
-  if(cfg.face !== N.idx){ if(N.prevFace === null) N.prevFace = cfg.face | 0; cfg.face = N.idx; store(); }
-  if($('#clockscr').hidden) openClock();
+  const red = redIdx(); if(red < 0) return;
+  if((cfg.face | 0) !== red && cfg.nightPrevFace === undefined){ cfg.nightPrevFace = cfg.face | 0; cfg.nightWasClock = clockOpen() ? 1 : 0; }
+  /* setClockFace also redraws a clock that is already open (it used to keep the old face and stop updating) */
+  if(clockOpen()){ if((cfg.face | 0) !== red && window.setClockFace) setClockFace(red); }
+  else { cfg.face = red; openClock(); }
+  store();
 }
 function enterNight(){
   N.on = true;
-  if(cfg.nightMode === 'red' && !$('#dlg').open && !isMusicPlaying) redClock();
+  /* an open clock screen turns red right away; otherwise wait until no music is playing */
+  if(cfg.nightMode === 'red' && !$('#dlg').open && (clockOpen() || !isMusicPlaying)) redClock();
 }
 function leaveNight(){
   N.on = false; blk.classList.remove('on'); blk.hidden = true;
-  if(N.idx >= 0 && cfg.face === N.idx && N.prevFace !== null){ cfg.face = N.prevFace; store(); if(!$('#clockscr').hidden && $('#setup').hidden && !$('#dlg').open) openHome(); }
-  N.prevFace = null;
+  if(cfg.nightPrevFace !== undefined){
+    const red = redIdx(), prev = cfg.nightPrevFace | 0, wasClock = !!cfg.nightWasClock;
+    delete cfg.nightPrevFace; delete cfg.nightWasClock;
+    if((cfg.face | 0) === red){
+      cfg.face = prev;
+      if(clockOpen() && $('#setup').hidden && !$('#dlg').open){ if(wasClock && window.setClockFace) setClockFace(prev); else openHome(); }
+    }
+    store();
+  }
   if(window.dimTick) dimTick();
 }
 function nightTick(){
   const want = inNightWindow() && $('#setup').hidden;
   if(want && !N.on) enterNight();
   else if(!want && N.on) leaveNight();
+  /* a face left over from a night that ended while the frame was off or reloading */
+  else if(!want && cfg.nightPrevFace !== undefined) leaveNight();
   if(!N.on) return;
   if(cfg.nightMode === 'black'){
     const dark = nightDark() && !$('#dlg').open;
     if(dark){ if(blk.hidden){ blk.hidden = false; setTimeout(() => blk.classList.add('on'), 40); } else blk.classList.add('on'); } else blk.classList.remove('on');
   } else if(cfg.nightMode === 'red'){
     /* after music or a look around, go back to the red clock once things are quiet again */
-    if($('#clockscr').hidden && !isMusicPlaying && Date.now() - N.touch > 120000 && !$('#dlg').open && $('#ring').hidden && !awayMode) redClock();
+    if(clockOpen()){ if((cfg.face | 0) !== redIdx() && cfg.nightPrevFace === undefined && !$('#dlg').open) redClock(); }   /* a face picked by hand during the night is left alone */
+    else if(!isMusicPlaying && Date.now() - N.touch > 120000 && !$('#dlg').open && $('#ring').hidden && !awayMode) redClock();
   }
   if(window.dimTick) dimTick();
 }
@@ -6819,7 +6861,8 @@ $('#pinoff').onclick = () => { delete cfg.pinHash; delete cfg.pinSalt; store(); 
 const SECRET = ['user', 'key', 'spClient', 'omKey', 'owmKey', 'icalUrl', 'icalProxy'];
 function makeBackup(keys, bg){
   const c = JSON.parse(JSON.stringify(cfg));
-  ['_tryMode', 'pinHash', 'pinSalt', 'channel', 'accent', 'accentFor', '_uTouched'].forEach(k => delete c[k]);
+  /* things that belong to this device, not to the settings */
+  ['_tryMode', 'pinHash', 'pinSalt', 'channel', 'accent', 'accentFor', '_uTouched', 'autoLite', 'perfKeep', 'nightPrevFace', 'nightWasClock', 'deviceType'].forEach(k => delete c[k]);
   if(!keys) SECRET.forEach(k => delete c[k]);
   if(c.city){ delete c.city.names; delete c.city.namesKey; delete c.city.region; delete c.city.regionKey; }
   const o = { app: 'photo-frame', kind: 'settings', v: 1, made: new Date().toISOString(), web: window.WEB_VERSION, cfg: c, favs: jget('pf-favs', []), hidden: jget('pf-hidden', []) };
@@ -6893,7 +6936,7 @@ async function diag(){
   if(dev) L.push('Device: ' + dev.type + ' · ' + dev.name + (dev.cores ? ' · ' + dev.cores + ' cores' : '') + (dev.ramGb ? ' · ' + dev.ramGb + ' GB' : ''));
   L.push('Screen: ' + innerWidth + '×' + innerHeight + ' @' + (devicePixelRatio || 1) + 'x · touch ' + (navigator.maxTouchPoints || 0));
   L.push('Browser: ' + navigator.userAgent);
-  L.push('Language: ' + LANG + ' · country: ' + (CITY.cc || '?') + ' · performance: ' + (cfg.perf || 'auto') + (window.LITE ? ' (light active)' : ''));
+  L.push('Language: ' + LANG + ' · country: ' + (CITY.cc || '?') + ' · performance: ' + (cfg.perf || 'auto') + (LITE ? ' (light active)' : ''));
   L.push('Settings: music ' + (cfg.musicSrc || '-') + ', weather ' + (cfg.wxProvider || 'om') + ', brightness ' + (cfg.dimMode || 'off') + ', night ' + (cfg.nightMode || 'off') + ', background ' + (cfg.homeBg || 'ambient') + ', units ' + (cfg.tempU || 'c') + '/' + (cfg.windU || 'kmh') + '/' + (cfg.hour12 ? '12h' : '24h') + ', photos ' + (typeof photos !== 'undefined' ? photos.length : '?') + ', warnings ' + (cfg.wxWarn === false ? 'off' : 'on') + ', PIN ' + (cfg.pinHash ? 'yes' : 'no'));
   const ex = []; try { if(typeof wxError !== 'undefined' && wxError) ex.push('Weather: ' + wxError); } catch {}
   if(ex.length) L.push(...ex);
@@ -7061,7 +7104,8 @@ setBig = function(o){ const r = orig.apply(this, arguments); update(o); return r
 /* only play while Now Playing is on screen */
 setInterval(() => {
   if(!v.src || v.hidden) return;
-  const show = document.body.classList.contains('vmusic') && !document.hidden;
+  /* only while Now Playing is really on screen and music is playing: not behind Home or the clock, not after the music stopped */
+  const show = document.body.classList.contains('vmusic') && !document.hidden && !isCovered() && isMusicPlaying;
   if(show){ place(); if(v.paused) v.play().catch(() => {}); } else if(!v.paused) v.pause();
 }, 1000);
 /* setting */
@@ -7118,6 +7162,37 @@ async function sample(){
 setTimeout(sample, 30000); setInterval(sample, 60000);
 /* choosing Best visuals again in Settings after being asked means: keep it */
 $('#save').addEventListener('click', () => { if($('#perf').value === 'full' && cfg.perfKeep === undefined && cfg.autoLite) { cfg.perfKeep = 1; store(); } });
+})();
+</script>
+<script>
+/* =====================================================================
+   v46.2: on the weather screens the small "now playing" card is hidden
+   whenever it would cover text, a graph or the radar bar (short tablets,
+   phones). It comes back as soon as there is room.
+   ===================================================================== */
+(() => {
+const np = $('#np');
+const hit = (a, b) => a.left < b.right - 3 && a.right > b.left + 3 && a.top < b.bottom - 3 && a.bottom > b.top + 3;
+function npFit(){
+  np.classList.remove('nofit');
+  if(!isWxView(view) || np.hidden) return;
+  const r = np.getBoundingClientRect(), act = document.querySelector('.wview.active');
+  if(!r.width || !act) return;
+  const area = innerWidth * innerHeight;
+  for(const e of act.querySelectorAll('*')){
+    const isText = [...e.childNodes].some(c => c.nodeType === 3 && c.nodeValue.trim().length > 0);
+    if(!isText && e.tagName !== 'CANVAS' && e.id !== 'rbar') continue;
+    const b = e.getBoundingClientRect();
+    if(!b.width || !b.height || b.width * b.height > area * .6) continue;   /* full-screen layers (sky, map) don't count */
+    if(hit(r, b)){ np.classList.add('nofit'); return; }
+  }
+}
+window.npFit = npFit;
+const sv = setView; setView = function(){ const r = sv.apply(this, arguments); setTimeout(npFit, 80); setTimeout(npFit, 1200); return r; };
+addEventListener('resize', () => setTimeout(npFit, 300));
+document.addEventListener('wxupdate', () => setTimeout(npFit, 300));
+setInterval(() => { if(isWxView(view) && !document.hidden) npFit(); }, 5000);
+setTimeout(npFit, 1500);
 })();
 </script>
 </body>
