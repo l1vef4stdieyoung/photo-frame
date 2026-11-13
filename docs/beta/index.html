@@ -6169,7 +6169,8 @@ function swirlSteer(){
       const want = (((t - BT.t0) % per) + per) % per / per, ct = +a.currentTime;
       if(isFinite(ct)){
         let e = want - (((ct % seg) + seg) % seg) / seg; if(e > .5) e -= 1; else if(e < -.5) e += 1;
-        if(Math.abs(e) > .07) rate *= 1 + Math.max(-.3, Math.min(.3, e * .6));
+        /* out of step: play a little faster or slower (at most 12%) until the pushes sit on the beat */
+        if(Math.abs(e) > .08) rate *= 1 + Math.max(-.12, Math.min(.12, e * .35));
       }
     }
     if(Math.abs(rate - a.playbackRate) > .012){ try { a.updatePlaybackRate(rate); } catch {} }
@@ -6189,16 +6190,45 @@ function micTick(){
   const t = Date.now(), per = bpmNow() ? 60000 / bpmNow() : 500;
   if(h.length > 20 && lvl > 35 && flux > 6 && flux > mean + 1.5 * sd && t - MIC.lastOn > Math.max(240, per * .55)){
     MIC.lastOn = t; MIC.heard = t;
-    const o = MIC.onsets; o.push(t); if(o.length > 24) o.shift();
-    /* no tempo from Deezer: work it out from the gaps between the beats heard */
-    if(!curBpm && o.length >= 6){
-      const gaps = o.slice(1).map((x, i) => x - o[i]).filter(g => g >= 300 && g <= 1000).sort((a, b) => a - b);
-      if(gaps.length >= 4){ let b = 60000 / gaps[gaps.length >> 1]; while(b > 140) b /= 2; while(b < 70) b *= 2; b = Math.round(b); if(!BT.bpm || Math.abs(b - BT.bpm) / BT.bpm > .06) BT.bpm = b; }
+    const o = MIC.onsets; o.push(t); while(o.length > 32 || (o.length && t - o[0] > 20000)) o.shift();
+    /* no tempo from Deezer: work it out from what was heard. A new tempo has to show up several times in a row
+       before it is believed, so single odd hits can't make the swirl speed up and slow down. */
+    if(!curBpm){
+      const cand = micTempo();
+      if(cand){
+        if(!BT.bpm){ BT.bpm = Math.round(cand); MIC.ph = []; }
+        else if(Math.abs(cand - BT.bpm) / BT.bpm <= .05){ BT.bpm = +(BT.bpm * .9 + cand * .1).toFixed(1); MIC.candN = 0; }
+        else { MIC.candN = MIC.cand && Math.abs(cand - MIC.cand) / MIC.cand < .04 ? (MIC.candN || 0) + 1 : 1; MIC.cand = cand; if(MIC.candN >= 5){ BT.bpm = Math.round(cand); MIC.candN = 0; MIC.ph = []; } }
+      }
     }
-    /* pull the beat grid towards what was heard */
+    /* where in the beat do the hits fall? Only when the last hits agree is the beat grid moved, in one step;
+       the swirl then drifts into place by itself. */
     const q = bpmNow() ? 60000 / bpmNow() : 0;
-    if(q){ const k = Math.round((t - BT.t0) / q), err = t - (BT.t0 + k * q); BT.t0 += err * .4; }
+    if(q){
+      const ph = MIC.ph || (MIC.ph = []); ph.push((((t - BT.t0) % q) + q) % q / q); if(ph.length > 12) ph.shift();
+      if(ph.length >= 6){
+        let x = 0, y = 0; for(const v of ph){ x += Math.cos(6.2832 * v); y += Math.sin(6.2832 * v); }
+        const agree = Math.hypot(x, y) / ph.length, mean = Math.atan2(y, x) / 6.2832;
+        if(agree > .55 && Math.abs(mean) > .06){ BT.t0 += mean * q; MIC.ph = []; }
+      }
+    }
   }
+}
+/* tempo from the gaps between the hits heard: every gap (also across 2, 3 and 4 hits) is folded into 70–140 BPM
+   and the most common value wins */
+function micTempo(){
+  const o = MIC.onsets; if(o.length < 8) return 0;
+  const bins = new Map();
+  for(let i = 1; i < o.length; i++) for(let k = 1; k <= 4 && i - k >= 0; k++){
+    let g = o[i] - o[i - k]; if(g < 250 || g > 3500) continue;
+    while(g > 857) g /= 2; while(g < 428) g *= 2;
+    const b = Math.round(g / 15); bins.set(b, (bins.get(b) || 0) + 1 / k);
+  }
+  let best = 0, bk = 0;
+  for(const [k, v] of bins){ const sc = v + ((bins.get(k - 1) || 0) + (bins.get(k + 1) || 0)) * .6; if(sc > best){ best = sc; bk = k; } }
+  if(best < 4) return 0;
+  let sw = 0, sx = 0; for(const k of [bk - 1, bk, bk + 1]){ const v = bins.get(k) || 0; sw += v; sx += v * k * 15; }
+  return sw ? 60000 / (sx / sw) : 0;
 }
 async function micStart(){
   if(MIC.st || MIC.busy) return; MIC.busy = true;
@@ -6252,7 +6282,7 @@ setInterval(applyBeat, 1000);
 function trackChanged(artist, title){
   const key = (artist || '') + '|' + (title || '');
   if(key === curKey) return;
-  curKey = key; curBpm = 0; BT.bpm = 0; BT.t0 = Date.now(); MIC.onsets = []; applyBeat();
+  curKey = key; curBpm = 0; BT.bpm = 0; BT.t0 = Date.now(); MIC.onsets = []; MIC.ph = []; MIC.cand = 0; MIC.candN = 0; applyBeat();
   if(!artist || !title || /Nothing is playing|not connected|turned off|Last.fm is not configured|No tracks found/i.test(title + ' ' + artist)) return;
   lookupBpm(artist, title).then(b => { if(curKey === key){ curBpm = b; applyBeat(); } });
 }
