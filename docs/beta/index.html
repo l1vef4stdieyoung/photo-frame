@@ -6200,7 +6200,11 @@ function micTick(){
       if(cand){
         if(!BT.bpm){ BT.bpm = Math.round(cand); MIC.ph = []; }
         else if(Math.abs(cand - BT.bpm) / BT.bpm <= .05){ BT.bpm = +(BT.bpm * .9 + cand * .1).toFixed(1); MIC.candN = 0; }
-        else { MIC.candN = MIC.cand && Math.abs(cand - MIC.cand) / MIC.cand < .04 ? (MIC.candN || 0) + 1 : 1; MIC.cand = cand; if(MIC.candN >= 5){ BT.bpm = Math.round(cand); MIC.candN = 0; MIC.ph = []; } }
+        else {
+          /* 1.5x or 2/3 of the tempo already found is the same song heard with skipped hits, not a new tempo */
+          const ratio = cand / BT.bpm, alias = [1.5, 2 / 3, 4 / 3, .75].some(x => Math.abs(ratio - x) / x < .07);
+          if(!alias){ MIC.candN = MIC.cand && Math.abs(cand - MIC.cand) / MIC.cand < .04 ? (MIC.candN || 0) + 1 : 1; MIC.cand = cand; if(MIC.candN >= 8){ BT.bpm = Math.round(cand); MIC.candN = 0; MIC.ph = []; } }
+        }
       }
     }
     /* where in the beat do the hits fall? Only when the last hits agree is the beat grid moved, in one step;
