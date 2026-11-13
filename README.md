@@ -60,7 +60,7 @@ A tile layout you return to from every screen.
 - **Large album art:** up to 1200 × 1200, using Apple's iTunes catalogue artwork when it matches.
 - **Moving album covers:** in the Android app, albums that have an animated cover on Apple Music play it in place of the picture. It only plays while Now Playing is on screen, and can be turned off in **Settings → Music**.
 - **Background:** blurred colours taken from the cover.
-- **Background to the beat (beta):** the colours swirl with the music and get a push on every beat. Choose where the beat comes from:
+- **Background to the beat (beta):** the colours swirl with the music, faster for faster songs, with a gentle push on every beat (no flashing). Choose where the beat comes from:
   - **Tempo** (default): the song's speed from Deezer. It can be a little ahead of or behind the real beat.
   - **Spotify:** also uses where you are in the song, so it lines up better (only when the music source is Spotify).
   - **Microphone:** the tablet listens to the music playing in the room and hits the beat exactly. The sound is analysed on the device and never recorded or sent anywhere (Android app 2.2.0 or newer, or a browser).

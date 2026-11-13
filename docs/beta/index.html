@@ -6173,7 +6173,9 @@ function swirlSteer(){
         if(Math.abs(e) > .08) rate *= 1 + Math.max(-.12, Math.min(.12, e * .35));
       }
     }
-    if(Math.abs(rate - a.playbackRate) > .012){ try { a.updatePlaybackRate(rate); } catch {} }
+    /* ease towards the new speed over a second or two, also when the music stops or starts */
+    const cur = a.playbackRate; if(Math.abs(rate - cur) > .03) rate = cur + (rate - cur) * .35;
+    if(Math.abs(rate - cur) > .012){ try { a.updatePlaybackRate(rate); } catch {} }
   }
 }
 setInterval(swirlSteer, 400);
