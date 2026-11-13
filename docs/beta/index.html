@@ -1175,27 +1175,23 @@ body.themed .su-list li.done .n svg{stroke:var(--accent-ink)}
 #bartv.on{opacity:1}
 #bartv[hidden]{display:none}
 
-/* ===== v46.1: the Now Playing colours swirl to the beat =====
-   Pure CSS animations (handled by the graphics chip, nothing redrawn per frame): one turn takes 32 beats,
-   each beat is a quick push that eases off. JavaScript only lines the animations up with the beat. */
-@keyframes swirl32{0.0%{rotate:0.0deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}3.125%{rotate:11.25deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}6.25%{rotate:22.5deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}9.375%{rotate:33.75deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}12.5%{rotate:45.0deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}15.625%{rotate:56.25deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}18.75%{rotate:67.5deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}21.875%{rotate:78.75deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}25.0%{rotate:90.0deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}28.125%{rotate:101.25deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}31.25%{rotate:112.5deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}34.375%{rotate:123.75deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}37.5%{rotate:135.0deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}40.625%{rotate:146.25deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}43.75%{rotate:157.5deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}46.875%{rotate:168.75deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}50.0%{rotate:180.0deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}53.125%{rotate:191.25deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}56.25%{rotate:202.5deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}59.375%{rotate:213.75deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}62.5%{rotate:225.0deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}65.625%{rotate:236.25deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}68.75%{rotate:247.5deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}71.875%{rotate:258.75deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}75.0%{rotate:270.0deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}78.125%{rotate:281.25deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}81.25%{rotate:292.5deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}84.375%{rotate:303.75deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}87.5%{rotate:315.0deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}90.625%{rotate:326.25deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}93.75%{rotate:337.5deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}96.875%{rotate:348.75deg;animation-timing-function:cubic-bezier(.12,.75,.35,1)}100.0%{rotate:360.0deg}}
-@keyframes swirlslow{to{rotate:360deg}}
+/* ===== v46.3: the Now Playing colours swirl to the beat =====
+   The animations have a fixed length (one turn = 32 beats at 120 BPM, a gentle push on each beat).
+   JavaScript never restarts or re-times them: it only changes how fast they play, so the colours
+   speed up, slow down and drift into step with the beat without ever jumping. There is no flash. */
+@keyframes swirl32{0.0%{rotate:0.0deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}3.125%{rotate:11.25deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}6.25%{rotate:22.5deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}9.375%{rotate:33.75deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}12.5%{rotate:45.0deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}15.625%{rotate:56.25deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}18.75%{rotate:67.5deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}21.875%{rotate:78.75deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}25.0%{rotate:90.0deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}28.125%{rotate:101.25deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}31.25%{rotate:112.5deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}34.375%{rotate:123.75deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}37.5%{rotate:135.0deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}40.625%{rotate:146.25deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}43.75%{rotate:157.5deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}46.875%{rotate:168.75deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}50.0%{rotate:180.0deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}53.125%{rotate:191.25deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}56.25%{rotate:202.5deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}59.375%{rotate:213.75deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}62.5%{rotate:225.0deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}65.625%{rotate:236.25deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}68.75%{rotate:247.5deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}71.875%{rotate:258.75deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}75.0%{rotate:270.0deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}78.125%{rotate:281.25deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}81.25%{rotate:292.5deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}84.375%{rotate:303.75deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}87.5%{rotate:315.0deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}90.625%{rotate:326.25deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}93.75%{rotate:337.5deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}96.875%{rotate:348.75deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}100.0%{rotate:360.0deg}}
+@keyframes swirl32r{0.0%{rotate:0.0deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}3.125%{rotate:-11.25deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}6.25%{rotate:-22.5deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}9.375%{rotate:-33.75deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}12.5%{rotate:-45.0deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}15.625%{rotate:-56.25deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}18.75%{rotate:-67.5deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}21.875%{rotate:-78.75deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}25.0%{rotate:-90.0deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}28.125%{rotate:-101.25deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}31.25%{rotate:-112.5deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}34.375%{rotate:-123.75deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}37.5%{rotate:-135.0deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}40.625%{rotate:-146.25deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}43.75%{rotate:-157.5deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}46.875%{rotate:-168.75deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}50.0%{rotate:-180.0deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}53.125%{rotate:-191.25deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}56.25%{rotate:-202.5deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}59.375%{rotate:-213.75deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}62.5%{rotate:-225.0deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}65.625%{rotate:-236.25deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}68.75%{rotate:-247.5deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}71.875%{rotate:-258.75deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}75.0%{rotate:-270.0deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}78.125%{rotate:-281.25deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}81.25%{rotate:-292.5deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}84.375%{rotate:-303.75deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}87.5%{rotate:-315.0deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}90.625%{rotate:-326.25deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}93.75%{rotate:-337.5deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}96.875%{rotate:-348.75deg;animation-timing-function:cubic-bezier(.22,.6,.4,1)}100.0%{rotate:-360.0deg}}
 #bgart.swirl i{will-change:transform,rotate}
-#bgart.swirl i:nth-child(1){animation:d1 calc(38s / var(--spd,1)) ease-in-out infinite alternate,swirl32 var(--rd,16s) linear var(--rdel,0s) infinite}
-#bgart.swirl i:nth-child(2){animation:d2 calc(46s / var(--spd,1)) ease-in-out infinite alternate,swirl32 var(--rd,16s) linear var(--rdel,0s) infinite reverse}
-#bgart.swirl i:nth-child(3){animation:d3 calc(52s / var(--spd,1)) ease-in-out infinite alternate,swirl32 calc(var(--rd,16s) * 1.25) linear var(--rdel,0s) infinite}
-#bgart.swirl i:nth-child(4){animation:d4 calc(42s / var(--spd,1)) ease-in-out infinite alternate,swirl32 calc(var(--rd,16s) * 1.25) linear var(--rdel,0s) infinite reverse}
-body.lite #bgart.swirl i:nth-child(1),body.lite #bgart.swirl i:nth-child(2){animation-duration:calc(70s / var(--spd,1)),var(--rd,16s)}
-#big.still #bgart.swirl i:nth-child(odd){animation:swirl32 var(--rd,16s) linear var(--rdel,0s) infinite}
-#big.still #bgart.swirl i:nth-child(even){animation:swirl32 var(--rd,16s) linear var(--rdel,0s) infinite reverse}
-#bgart.swirl.slow i{animation-name:d1,swirlslow;animation-duration:calc(38s / var(--spd,1)),120s;animation-timing-function:ease-in-out,linear;animation-delay:0s,0s}
-#bgart.swirl.slow i:nth-child(2){animation-name:d2,swirlslow}
-#bgart.swirl.slow i:nth-child(3){animation-name:d3,swirlslow}
-#bgart.swirl.slow i:nth-child(4){animation-name:d4,swirlslow}
-@keyframes beatsoft{0%{opacity:.55;transform:scale(1.04)}60%{opacity:.1}100%{opacity:0;transform:scale(1)}}
-#bgart.swirl .beatfx{animation:beatsoft var(--bt,.5s) cubic-bezier(.2,.7,.3,1) var(--bdel,0s) infinite}
-#bgart.swirl.slow .beatfx{animation:none;opacity:0}
-
+#bgart.swirl i:nth-child(1){animation:d1 calc(38s / var(--spd,1)) ease-in-out infinite alternate,swirl32 16s linear infinite}
+#bgart.swirl i:nth-child(2){animation:d2 calc(46s / var(--spd,1)) ease-in-out infinite alternate,swirl32r 16s linear infinite}
+#bgart.swirl i:nth-child(3){animation:d3 calc(52s / var(--spd,1)) ease-in-out infinite alternate,swirl32 32s linear infinite}
+#bgart.swirl i:nth-child(4){animation:d4 calc(42s / var(--spd,1)) ease-in-out infinite alternate,swirl32r 32s linear infinite}
+body.lite #bgart.swirl i:nth-child(1),body.lite #bgart.swirl i:nth-child(2){animation-duration:calc(70s / var(--spd,1)),16s}
+#big.still #bgart.swirl i:nth-child(1){animation:swirl32 16s linear infinite}
+#big.still #bgart.swirl i:nth-child(2){animation:swirl32r 16s linear infinite}
+#big.still #bgart.swirl i:nth-child(3){animation:swirl32 32s linear infinite}
+#big.still #bgart.swirl i:nth-child(4){animation:swirl32r 32s linear infinite}
+#bgart .beatfx{display:none!important}
 /* ===== v46.1: "running slowly" question ===== */
 #perfask{position:fixed;left:50%;bottom:max(18px,env(safe-area-inset-bottom));transform:translateX(-50%);z-index:350;display:flex;align-items:center;gap:14px;flex-wrap:wrap;justify-content:center;max-width:calc(100vw - 24px);padding:14px 16px 14px 20px;border-radius:22px;background:rgba(18,18,22,.92);border:1px solid rgba(255,255,255,.18);color:#fff;font-size:.95rem;box-shadow:0 20px 50px rgba(0,0,0,.5)}
 #perfask[hidden]{display:none}
@@ -1852,7 +1848,7 @@ body.lite #bgart.swirl i:nth-child(1),body.lite #bgart.swirl i:nth-child(2){anim
 /* ===== v40: Android app bridge =====
    Inside the photo-frame Android app, Capacitor provides window.Capacitor and the native "Frame" plugin.
    In a normal browser none of this exists and everything falls back to plain web behaviour. */
-window.WEB_VERSION = '46.2';
+window.WEB_VERSION = '46.3';
 window.FRAME_CHANNEL = /\/beta\/(index\.html)?$/.test(location.pathname) ? 'beta' : 'stable';
 /* the normal (stable) address of this frame, also used as the Spotify return address */
 window.STABLE_URL = location.origin + location.pathname.replace(/beta\/(index\.html)?$/, '').replace(/index\.html$/, '');
@@ -6136,7 +6132,7 @@ async function lookupBpm(artist, title){
 /* ---------------- v46: the Now Playing colours swirl to the beat.
    Where the beats fall comes from the song's tempo (Deezer), the song position (Spotify) or the microphone. */
 const beatMode = () => ['off', 'tempo', 'spotify', 'mic'].includes(cfg.beatMode) ? cfg.beatMode : 'tempo';
-const BT = { t0: Date.now(), bpm: 0, src: 'tempo', on: false, setT0: 0, setPer: 0, setAt: 0, rotT0: 0, rotPer: 0, rotAt: 0 };
+const BT = { t0: Date.now(), bpm: 0, src: 'tempo', on: false, playing: false, anims: null, animsAt: 0 };
 const MIC = { st: null, ac: null, an: null, node: null, buf: null, prev: null, hist: [], onsets: [], lastOn: 0, heard: 0, iv: 0, err: '', failAt: 0, busy: false };
 const bpmNow = () => curBpm || BT.bpm;
 /* which clock the beats follow right now */
@@ -6146,27 +6142,40 @@ function beatSource(){
   if((m === 'spotify' || m === 'mic') && cfg.musicSrc === 'spotify' && SP.prog && SP.prog.playing) return 'spotify';
   return 'tempo';
 }
-/* lines the CSS animations up with the beat; only touched when the tempo or the beat grid really moved */
-function beatSync(force){
-  const bg = $('#bgart'), bpm = bpmNow();
-  bg.classList.toggle('slow', !(bpm > 0));
-  if(!(bpm > 0)) return;
-  const per = 60000 / bpm, t = Date.now();
-  if(BT.src === 'spotify' && SP.prog) BT.t0 = SP.prog.at - SP.prog.ms;   /* the beat grid starts with the song */
-  const off = (a, b, m) => { let d = ((a - b) % m + m) % m; return d > m / 2 ? d - m : d; };
-  /* the beat flash is a small layer: keep it closely in step (at most every 3 s) */
-  if(force || per !== BT.setPer || (Math.abs(off(BT.t0, BT.setT0, per)) > 60 && t - BT.setAt > 3000)){
-    const phb = ((t - BT.t0) % per + per) % per;
-    bg.style.setProperty('--bt', (per / 1000).toFixed(3) + 's'); bg.style.setProperty('--bdel', (-phb / 1000).toFixed(3) + 's');
-    BT.setT0 = BT.t0; BT.setPer = per; BT.setAt = t;
+/* The swirl animations (see the CSS) are steered only through their playing speed:
+   - speed follows the tempo (1 = 120 BPM), 0 while no music plays, slow when the tempo is unknown
+   - when the pushes are out of step with the beat, the speed is nudged a little until they line up
+   Nothing is ever restarted, so the colours can't jump. */
+function swirlAnims(){
+  const bg = $('#bgart'), t = Date.now();
+  if(!bg.getAnimations) return [];
+  if(!BT.anims || t - BT.animsAt > 4000 || BT.anims.some(a => a.playState === 'idle')){
+    BT.anims = []; BT.animsAt = t;
+    bg.querySelectorAll('i').forEach(e => e.getAnimations().forEach(a => { if(/^swirl32/.test(a.animationName || '')) BT.anims.push(a); }));
   }
-  /* re-timing the big colour layers costs a stutter on slow tablets, so only when the tempo changes or they drift clearly (at most every 30 s) */
-  if(force || per !== BT.rotPer || (Math.abs(off(BT.t0, BT.rotT0, per)) > 150 && t - BT.rotAt > 30000)){
-    const rot = per * 32, ph = ((t - BT.t0) % rot + rot) % rot;
-    bg.style.setProperty('--rd', (rot / 1000).toFixed(3) + 's'); bg.style.setProperty('--rdel', (-ph / 1000).toFixed(3) + 's');
-    BT.rotT0 = BT.t0; BT.rotPer = per; BT.rotAt = t;
+  return BT.anims;
+}
+function swirlSteer(){
+  if(!BT.on || document.hidden || view !== 'music' || isCovered()) return;
+  const bpm = bpmNow(), t = Date.now();
+  if(BT.src === 'spotify' && SP.prog) BT.t0 = SP.prog.at - SP.prog.ms;   /* the beat grid starts with the song */
+  for(const a of swirlAnims()){
+    let rate;
+    if(!BT.playing) rate = 0;
+    else if(!(bpm > 0)) rate = .14;
+    else {
+      rate = bpm / 120;
+      const dur = (a.effect && a.effect.getTiming && +a.effect.getTiming().duration) || 16000, seg = dur / 32, beats = seg / 500, per = 60000 / bpm * beats;
+      const want = (((t - BT.t0) % per) + per) % per / per, ct = +a.currentTime;
+      if(isFinite(ct)){
+        let e = want - (((ct % seg) + seg) % seg) / seg; if(e > .5) e -= 1; else if(e < -.5) e += 1;
+        if(Math.abs(e) > .07) rate *= 1 + Math.max(-.3, Math.min(.3, e * .6));
+      }
+    }
+    if(Math.abs(rate - a.playbackRate) > .012){ try { a.updatePlaybackRate(rate); } catch {} }
   }
 }
+setInterval(swirlSteer, 400);
 /* ---- microphone: finds the beats in the bass of the music playing in the room. Nothing is recorded or sent. */
 function micTick(){
   const an = MIC.an; if(!an || !MIC.st) return;
@@ -6184,7 +6193,7 @@ function micTick(){
     /* no tempo from Deezer: work it out from the gaps between the beats heard */
     if(!curBpm && o.length >= 6){
       const gaps = o.slice(1).map((x, i) => x - o[i]).filter(g => g >= 300 && g <= 1000).sort((a, b) => a - b);
-      if(gaps.length >= 4){ let b = 60000 / gaps[gaps.length >> 1]; while(b > 140) b /= 2; while(b < 70) b *= 2; BT.bpm = Math.round(b); }
+      if(gaps.length >= 4){ let b = 60000 / gaps[gaps.length >> 1]; while(b > 140) b /= 2; while(b < 70) b *= 2; b = Math.round(b); if(!BT.bpm || Math.abs(b - BT.bpm) / BT.bpm > .06) BT.bpm = b; }
     }
     /* pull the beat grid towards what was heard */
     const q = bpmNow() ? 60000 / bpmNow() : 0;
@@ -6229,22 +6238,23 @@ window.beatStatus = () => {
 function applyBeat(){
   const bg = $('#bgart'), m = beatMode();
   const playing = isMusicPlaying && view === 'music' && !isCovered() && !calm();
-  const on = m !== 'off' && playing;
+  /* the swirl stays switched on while a beat mode is chosen; without music it just stands still (no snapping back) */
+  const on = m !== 'off' && !calm();
   /* the microphone only listens while the music screen is showing */
   if(m === 'mic' && playing){ if(!MIC.st && !MIC.busy && Date.now() - MIC.failAt > 600000) micStart(); } else micStop();
-  BT.src = beatSource();
-  bg.classList.remove('beat');
-  if(on && !BT.on) beatSync(true); else if(on) beatSync(false);
-  bg.classList.toggle('swirl', on); BT.on = on;
+  BT.src = beatSource(); BT.playing = playing;
+  bg.classList.remove('beat', 'slow');
+  if(on !== BT.on){ bg.classList.toggle('swirl', on); BT.on = on; BT.anims = null; }
+  swirlSteer();
   setText($('#bbpm'), cfg.debug ? (bpmNow() ? Math.round(bpmNow()) + ' BPM · ' + BT.src : curKey ? 'BPM unknown' : '') : '');
 }
 setInterval(applyBeat, 1000);
 function trackChanged(artist, title){
   const key = (artist || '') + '|' + (title || '');
   if(key === curKey) return;
-  curKey = key; curBpm = 0; BT.bpm = 0; BT.t0 = Date.now(); BT.setPer = BT.rotPer = 0; MIC.onsets = []; applyBeat();
+  curKey = key; curBpm = 0; BT.bpm = 0; BT.t0 = Date.now(); MIC.onsets = []; applyBeat();
   if(!artist || !title || /Nothing is playing|not connected|turned off|Last.fm is not configured|No tracks found/i.test(title + ' ' + artist)) return;
-  lookupBpm(artist, title).then(b => { if(curKey === key){ curBpm = b; BT.setPer = BT.rotPer = 0; applyBeat(); } });
+  lookupBpm(artist, title).then(b => { if(curKey === key){ curBpm = b; applyBeat(); } });
 }
 const _setBig = setBig;
 setBig = function(o){ const r = _setBig.apply(this, arguments); trackChanged(o.artist, o.title); return r; };
